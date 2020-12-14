@@ -1,6 +1,8 @@
+#include "vld.h"
 #include "mainwindow.h"
 #include "emdilib.h"
 #include "documents.h"
+#include "schlibdoc.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -29,6 +31,7 @@ using docVec_t = std::list<std::unique_ptr<Document> >;
 template <typename T> std::string docString() {return "undefined";}
 template <> std::string docString<SchDocument>() {return "SchDocument_";}
 template <> std::string docString<TxtDocument>() {return "TxtDocument_";}
+template <> std::string docString<SchLibDocument>() {return "SchLibDocument_";}
 
 template<typename T> std::string docName() {
     static int idx = 0;
@@ -52,15 +55,20 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     QVBoxLayout *vb = new QVBoxLayout();
     QPushButton *pb;
 
+    pb = new QPushButton("New Sch. Library Doc");
+    vb->addWidget(pb);
+    QObject::connect(pb, &QPushButton::clicked, [&](){
+        newDoc<SchLibDocument>("Main Editor", emdi, docVec);});
+
     pb = new QPushButton("New Schematic Doc");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
         newDoc<SchDocument>("Main Editor", emdi, docVec);});
 
-    pb = new QPushButton("New Text Doc");
-    vb->addWidget(pb);
-    QObject::connect(pb, &QPushButton::clicked, [&](){
-        newDoc<TxtDocument>("Main Editor", emdi, docVec);});
+//    pb = new QPushButton("New Text Doc");
+//    vb->addWidget(pb);
+//    QObject::connect(pb, &QPushButton::clicked, [&](){
+//        newDoc<TxtDocument>("Main Editor", emdi, docVec);});
 
     pb = new QPushButton("Close Current Doc");
     vb->addWidget(pb);
@@ -151,26 +159,17 @@ int main(int argc, char *argv[]) {
     emdi.setMdiWindowCtor([](){return new QMdiSubWindow;});
     emdi.setDockWidgetCtor([](){return new QDockWidget;});
     emdi.newMainWindow();
-    docVec_t docVec;
 
+    docVec_t docVec;
     QObject::connect(&emdi, &Emdi::docClosed, [&docVec](void *p) {
         docVec.remove_if([&](const std::unique_ptr<Document> & up) {
             return up.get() == static_cast<Document *>(p);});});
 
     QWidget *buttWindow = buttonWindow(emdi, docVec);
-
-
-#if defined(QT_DEBUG)
-    qDebug("Hi from main qt_debug");
-#elif defined(QT_NO_DEBUG)
-   qDebug("Hi from main qt_no_debug");
-#endif
-
     buttWindow->show();
-
-//    newDoc<SchDocument>("Main Editor", emdi, docVec);
-//    emdi.showDockFrame("Doc Properties");
-//    emdi.popoutMdiFrame();
     a.exec();
+
+    delete buttWindow;
     qDebug("Done");
+
 }
