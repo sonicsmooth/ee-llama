@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DocWindow</class>
+ <widget class="QMainWindow" name="DocWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1091</width>
+    <height>631</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>LibWindow</string>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::GroupedDragging</set>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QMdiArea" name="mdiArea">
+        <property name="viewMode">
+         <enum>QMdiArea::SubWindowView</enum>
+        </property>
+        <property name="documentMode">
+         <bool>true</bool>
+        </property>
+        <property name="tabsClosable">
+         <bool>true</bool>
+        </property>
+        <property name="tabsMovable">
+         <bool>true</bool>
+        </property>
+        <property name="tabShape">
+         <enum>QTabWidget::Rounded</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1091</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuLibrarian">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionFileNewLib"/>
+    <addaction name="actionFileOpenLib"/>
+    <addaction name="actionOpen_recent"/>
+    <addaction name="actionFileSaveAs"/>
+    <addaction name="actionFileRename"/>
+    <addaction name="actionFileCloseLib"/>
+    <addaction name="actionFileDeleteLib"/>
+    <addaction name="separator"/>
+    <addaction name="actionCloseWindow"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Primitives</string>
+    </property>
+    <addaction name="actionNewRectangle"/>
+    <addaction name="actionNewLine"/>
+    <addaction name="actionNewText"/>
+    <addaction name="actionNewCircle"/>
+    <addaction name="actionNewArrow"/>
+    <addaction name="actionNewPolygon"/>
+    <addaction name="actionNewPolyline"/>
+    <addaction name="actionNewPin"/>
+   </widget>
+   <widget class="QMenu" name="menuSymbols">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionEditUndo"/>
+    <addaction name="actionEditRedo"/>
+    <addaction name="actionEditMove"/>
+    <addaction name="actionEditRotate"/>
+    <addaction name="actionEditCut"/>
+    <addaction name="actionEditCopy"/>
+    <addaction name="actionEditPaste"/>
+    <addaction name="separator"/>
+    <addaction name="actionEditDelete"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp_2">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionHelpAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuLibrary">
+    <property name="title">
+     <string>Library</string>
+    </property>
+    <addaction name="actionNewShape"/>
+    <addaction name="actionInsertShape"/>
+    <addaction name="actionNewSymbol"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="menuViews">
+    <property name="title">
+     <string>Views</string>
+    </property>
+    <addaction name="actionLibTreeView"/>
+    <addaction name="actionLibTableView"/>
+    <addaction name="separator"/>
+    <addaction name="actionPopOutSymbolView"/>
+    <addaction name="actionDuplicateSymbolView"/>
+    <addaction name="separator"/>
+    <addaction name="actionCloseSymbolView"/>
+   </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <addaction name="actionTabs"/>
+    <addaction name="separator"/>
+    <addaction name="actionCascade"/>
+    <addaction name="actionTile"/>
+    <addaction name="separator"/>
+    <addaction name="actionNewWindow"/>
+   </widget>
+   <addaction name="menuLibrarian"/>
+   <addaction name="menuSymbols"/>
+   <addaction name="menuLibrary"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuViews"/>
+   <addaction name="menuWindow"/>
+   <addaction name="menuHelp_2"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="minimumSize">
+    <size>
+     <width>20</width>
+     <height>50</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionFileNewLib"/>
+   <addaction name="actionFileOpenLib"/>
+   <addaction name="actionFileRename"/>
+   <addaction name="actionFileCloseLib"/>
+   <addaction name="actionFileDeleteLib"/>
+   <addaction name="separator"/>
+   <addaction name="actionEditUndo"/>
+   <addaction name="actionEditRedo"/>
+   <addaction name="actionEditMove"/>
+   <addaction name="actionEditRotate"/>
+   <addaction name="actionEditCut"/>
+   <addaction name="actionEditCopy"/>
+   <addaction name="actionEditPaste"/>
+   <addaction name="actionEditDelete"/>
+   <addaction name="separator"/>
+   <addaction name="actionNewShape"/>
+   <addaction name="actionInsertShape"/>
+   <addaction name="actionNewSymbol"/>
+   <addaction name="actionNewRectangle"/>
+   <addaction name="actionNewLine"/>
+   <addaction name="actionNewText"/>
+   <addaction name="actionNewCircle"/>
+   <addaction name="actionNewArrow"/>
+   <addaction name="actionNewPolygon"/>
+   <addaction name="actionNewPolyline"/>
+   <addaction name="actionNewPin"/>
+   <addaction name="separator"/>
+   <addaction name="actionHelpAbout"/>
+   <addaction name="actionReloadStyle"/>
+   <addaction name="separator"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionFileNewLib">
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/journal-new.png</normaloff>:/actions/journal-new.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new library</string>
+   </property>
+  </action>
+  <action name="actionFileOpenLib">
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/document-open.png</normaloff>:/actions/document-open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Open library</string>
+   </property>
+  </action>
+  <action name="actionFileSaveAs">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/document-save-as.png</normaloff>:/actions/document-save-as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save As...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save a copy, open new, close existing</string>
+   </property>
+  </action>
+  <action name="actionFileRename">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/document-save-as.png</normaloff>:/actions/document-save-as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rename Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename this file, keep open</string>
+   </property>
+  </action>
+  <action name="actionFileCloseLib">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/project-development-close.png</normaloff>:/actions/project-development-close.png</iconset>
+   </property>
+   <property name="text">
+    <string>Close Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Close library</string>
+   </property>
+  </action>
+  <action name="actionFileDeleteLib">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-delete.png</normaloff>:/actions/edit-delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete Library</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete library</string>
+   </property>
+  </action>
+  <action name="actionNewShape">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/shapes.png</normaloff>:/actions/shapes.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Shape</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new shape in library</string>
+   </property>
+  </action>
+  <action name="actionInsertShape">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/shapes.png</normaloff>:/actions/shapes.png</iconset>
+   </property>
+   <property name="text">
+    <string>Insert Shape</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert shape into symbol</string>
+   </property>
+  </action>
+  <action name="actionNewSymbol">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/devices/cpu.png</normaloff>:/devices/cpu.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Symbol</string>
+   </property>
+   <property name="toolTip">
+    <string>Create new symbol in library</string>
+   </property>
+  </action>
+  <action name="actionNewRectangle">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/draw-rectangle.png</normaloff>:/actions/draw-rectangle.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rectangle</string>
+   </property>
+  </action>
+  <action name="actionNewLine">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/insert-horizontal-rule.png</normaloff>:/actions/insert-horizontal-rule.png</iconset>
+   </property>
+   <property name="text">
+    <string>Line</string>
+   </property>
+  </action>
+  <action name="actionNewText">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/draw-text.png</normaloff>:/actions/draw-text.png</iconset>
+   </property>
+   <property name="text">
+    <string>Text</string>
+   </property>
+  </action>
+  <action name="actionNewCircle">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/draw-circle.png</normaloff>:/actions/draw-circle.png</iconset>
+   </property>
+   <property name="text">
+    <string>Circle</string>
+   </property>
+  </action>
+  <action name="actionNewArrow">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/draw-arrow-forward.png</normaloff>:/actions/draw-arrow-forward.png</iconset>
+   </property>
+   <property name="text">
+    <string>Arrow</string>
+   </property>
+  </action>
+  <action name="actionNewPolygon">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/draw-polygon.png</normaloff>:/actions/draw-polygon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Polygon</string>
+   </property>
+  </action>
+  <action name="actionNewPolyline">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/draw-polyline.png</normaloff>:/actions/draw-polyline.png</iconset>
+   </property>
+   <property name="text">
+    <string>Polyline</string>
+   </property>
+  </action>
+  <action name="actionNewPin">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-clear-locationbar-rtl.png</normaloff>:/actions/edit-clear-locationbar-rtl.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pin</string>
+   </property>
+  </action>
+  <action name="actionEditUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-undo.png</normaloff>:/actions/edit-undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo last action</string>
+   </property>
+  </action>
+  <action name="actionEditRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-redo.png</normaloff>:/actions/edit-redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>Redo last undo action</string>
+   </property>
+  </action>
+  <action name="actionEditMove">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/transform-move.png</normaloff>:/actions/transform-move.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move</string>
+   </property>
+  </action>
+  <action name="actionEditRotate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/transform-rotate.png</normaloff>:/actions/transform-rotate.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotate</string>
+   </property>
+  </action>
+  <action name="actionEditCut">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-cut.png</normaloff>:/actions/edit-cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="toolTip">
+    <string>Cut selection</string>
+   </property>
+  </action>
+  <action name="actionEditCopy">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-copy.png</normaloff>:/actions/edit-copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy selection</string>
+   </property>
+  </action>
+  <action name="actionEditPaste">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-paste.png</normaloff>:/actions/edit-paste.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="toolTip">
+    <string>Paste clipboard contents</string>
+   </property>
+  </action>
+  <action name="actionEditDelete">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/edit-delete.png</normaloff>:/actions/edit-delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete selection</string>
+   </property>
+  </action>
+  <action name="actionDuplicateSymbolView">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Duplicate</string>
+   </property>
+  </action>
+  <action name="actionCloseSymbolView">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </action>
+  <action name="actionLibTreeView">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Enable Tree View</string>
+   </property>
+   <property name="toolTip">
+    <string>Open tree view for current library</string>
+   </property>
+  </action>
+  <action name="actionLibTableView">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Enable Table View</string>
+   </property>
+   <property name="toolTip">
+    <string>Open table view for active library</string>
+   </property>
+  </action>
+  <action name="actionReloadStyle">
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/format-stroke-color.png</normaloff>:/actions/format-stroke-color.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reload Style</string>
+   </property>
+  </action>
+  <action name="actionNewWindow">
+   <property name="text">
+    <string>New Window</string>
+   </property>
+  </action>
+  <action name="actionCloseWindow">
+   <property name="text">
+    <string>Close Window</string>
+   </property>
+  </action>
+  <action name="actionHelpAbout">
+   <property name="icon">
+    <iconset resource="../application.qrc">
+     <normaloff>:/actions/help-about.png</normaloff>:/actions/help-about.png</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionTabs">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Show tabs</string>
+   </property>
+  </action>
+  <action name="actionCascade">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Cascade</string>
+   </property>
+  </action>
+  <action name="actionTile">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Tile</string>
+   </property>
+  </action>
+  <action name="actionPopOutSymbolView">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Pop out</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionOpen_recent">
+   <property name="text">
+    <string>Open recent</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../application.qrc"/>
+ </resources>
+ <connections/>
+</ui>

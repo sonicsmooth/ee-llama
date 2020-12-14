@@ -1,4 +1,4 @@
-#include "vld.h"
+//#include "vld.h"
 #include "mainwindow.h"
 #include "emdilib.h"
 #include "documents.h"
@@ -8,6 +8,7 @@
 #include <QDebug>
 #include <QDockWidget>
 #include <QInputDialog>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QMdiArea>
 #include <QMdiSubWindow>
@@ -29,9 +30,9 @@
 using docVec_t = std::list<std::unique_ptr<Document> >;
 
 template <typename T> std::string docString() {return "undefined";}
+template <> std::string docString<SchLibDocument>() {return "SchLibDocument_";}
 template <> std::string docString<SchDocument>() {return "SchDocument_";}
 template <> std::string docString<TxtDocument>() {return "TxtDocument_";}
-template <> std::string docString<SchLibDocument>() {return "SchLibDocument_";}
 
 template<typename T> std::string docName() {
     static int idx = 0;
@@ -146,19 +147,22 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     return w;
 }
 
-QMainWindow *newmw();
-QMainWindow *newmw() {
-    return new MainWindow();
-}
-
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+    ActionDispatcher ad;
 
     Emdi emdi;
-    emdi.setMainWindowCtor([](){return new MainWindow;});
+    emdi.setMainWindowCtor([&ad](){
+        MainWindow *mw = new MainWindow;
+        mw->setDispatcher(&ad);
+        return mw;
+    });
     emdi.setMdiWindowCtor([](){return new QMdiSubWindow;});
     emdi.setDockWidgetCtor([](){return new QDockWidget;});
-    emdi.newMainWindow();
+
+
+    MainWindow *mw = static_cast<MainWindow *>(emdi.newMainWindow());
+    mw->menuBar()->addAction("fromMain");
 
     docVec_t docVec;
     QObject::connect(&emdi, &Emdi::docClosed, [&docVec](void *p) {

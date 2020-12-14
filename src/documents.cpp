@@ -3,26 +3,33 @@
 #include <QTextEdit>
 #include <QDebug>
 
+#include <string>
+
 TxtDocument::TxtDocument(const std::string & name) :
     m_name(name),
     m_activeState(false)
 {
-//    qDebug() << QString("TxtDocument::TxtDocument(%1)").arg(name.c_str());
+    QMenu *m1 = new QMenu("TxtMenu1");
+    m1->addAction("What");
+    QMenu *m2 = new QMenu("TxtMenu2");
+    m2->addAction("Again?");
+    m_menus.push_back(m1);
+    m_menus.push_back(m2);
 }
 TxtDocument::~TxtDocument() {
     done();
     qDebug() << QString("TxtDocument::~TxtDocument() (%1)").arg(m_name.c_str());
+    for (auto m : m_menus)
+        delete m;
 }
 void TxtDocument::init() {
     if (m_activeState)
         return;
-//    qDebug() << "TxtDocument::init()" << m_name.c_str();
     m_activeState = true;
 }
 void TxtDocument::done() {
     if (!m_activeState)
         return;
-//    qDebug() << "TxtDocument::done() " << m_name.c_str();
     m_activeState = false;
 }
 bool TxtDocument::isActive() {
@@ -34,8 +41,6 @@ bool TxtDocument::supportsUserType(const std::string & userType) const {
 }
 QWidget *TxtDocument::newView(const std::string & userType) const {
     if (supportsUserType(userType)) {
-//        qDebug() << QString("TxtDocument::newView(%1) (%2)").
-//                    arg(userType.c_str()).arg(m_name.c_str());
         return new QTextEdit(QString("TxtDocument/%1/%2").
                             arg(m_name.c_str()).arg(userType.c_str()));
     } else {
@@ -45,27 +50,35 @@ QWidget *TxtDocument::newView(const std::string & userType) const {
 const std::string & TxtDocument::name() const {
     return m_name;
 }
+const menus_t & TxtDocument::menus() const {
+    return m_menus;
+}
 
 SchDocument::SchDocument(const std::string & name) :
     m_name(name),
     m_activeState(false)
 {
-//    qDebug() << QString("SchDocument::SchDocument(%1)").arg(name.c_str());
+    QMenu *m1 = new QMenu("SchMenu1");
+    m1->addAction("Rice");
+    QMenu *m2 = new QMenu("SchMenu2");
+    m2->addAction("aroni");
+    m_menus.push_back(m1);
+    m_menus.push_back(m2);
 }
 SchDocument::~SchDocument() {
     done();
     qDebug() << QString("SchDocument::~SchDocument() (%1)").arg(m_name.c_str());
+    for (auto m : m_menus)
+        delete m;
 }
 void SchDocument::init() {
     if (m_activeState)
         return;
-//    qDebug() << "SchDocument::init()" << m_name.c_str();
     m_activeState = true;
 }
 void SchDocument::done() {
     if (!m_activeState)
         return;
-//    qDebug() << "SchDocument::done() " << m_name.c_str();
     m_activeState = false;
 }
 bool SchDocument::isActive() {
@@ -78,8 +91,6 @@ bool SchDocument::supportsUserType(const std::string & userType) const {
 }
 QWidget *SchDocument::newView(const std::string & userType) const {
     if (supportsUserType(userType)) {
-//        qDebug() << QString("SchDocument::newView(%1) (%2)").
-//                    arg(userType.c_str()).arg(m_name.c_str());
         return new QTextEdit(QString("SchDocument/%1/%2").
                              arg(m_name.c_str()).arg(userType.c_str()));
     } else {
@@ -90,4 +101,6 @@ QWidget *SchDocument::newView(const std::string & userType) const {
 const std::string & SchDocument::name() const {
     return m_name;
 }
-
+const menus_t & SchDocument::menus() const {
+    return m_menus;
+}

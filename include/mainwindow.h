@@ -1,7 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <actiondispatcher.h>
+#include <QDebug>
 #include <QMainWindow>
+#include <QMenu>
+#include <map>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -14,8 +18,11 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void setDispatcher(ActionDispatcher *);
 
 private:
     Ui::MainWindow *ui;
+    ActionDispatcher *m_dispatch;
+
 };
 #endif // MAINWINDOW_H
