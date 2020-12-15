@@ -1,9 +1,9 @@
-#include "actiondispatcher.h"
-#include <QDebug>
+//#include "actiondispatcher.h"
+//#include <QDebug>
 
-ActionDispatcher::ActionDispatcher(QObject *parent) : QObject(parent) {
-}
+//ActionDispatcher::ActionDispatcher(QObject *parent) : QObject(parent) {
+//}
 
-void ActionDispatcher::onApplicationExit() {
-    qDebug() << "action dispatch exit";
-}
+//void ActionDispatcher::onApplicationExit() {
+//    qDebug() << "action dispatch exit";
+//}

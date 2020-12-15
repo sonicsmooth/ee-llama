@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->actionExit, &QAction::triggered, [this](){emit actionTriggered(ui->actionExit);});
 }
 
 MainWindow::~MainWindow()
@@ -16,9 +17,3 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setDispatcher(ActionDispatcher *ad) {
-    m_dispatch = ad;
-    QObject::connect(ui->actionExit, &QAction::triggered,
-                     m_dispatch,     &ActionDispatcher::onApplicationExit);
-
-}

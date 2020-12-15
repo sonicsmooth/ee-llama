@@ -1,18 +1,18 @@
-#ifndef ACTIONDISPATCHER_H
-#define ACTIONDISPATCHER_H
+//#ifndef ACTIONDISPATCHER_H
+//#define ACTIONDISPATCHER_H
 
-#include <QObject>
+//#include <QObject>
 
-class ActionDispatcher : public QObject
-{
-    Q_OBJECT
-public:
-    explicit ActionDispatcher(QObject *parent = nullptr);
+//class ActionDispatcher : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    explicit ActionDispatcher(QObject *parent = nullptr);
 
-signals:
-public slots:
-    void onApplicationExit();
+//signals:
+//public slots:
+//    void onApplicationExit();
 
-};
+//};
 
-#endif // ACTIONDISPATCHER_H
+//#endif // ACTIONDISPATCHER_H

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <actiondispatcher.h>
+#include <QAction>
 #include <QDebug>
 #include <QMainWindow>
 #include <QMenu>
@@ -18,11 +19,12 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void setDispatcher(ActionDispatcher *);
 
 private:
     Ui::MainWindow *ui;
-    ActionDispatcher *m_dispatch;
+signals:
+    void actionTriggered(QAction *);
+
 
 };
 #endif // MAINWINDOW_H

@@ -4,6 +4,7 @@
 #include "documents.h"
 #include "schlibdoc.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QDebug>
 #include <QDockWidget>
@@ -50,6 +51,20 @@ void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     docVec.push_back(std::move(p));
 }
 
+void quitSequence(Emdi &);
+void quitSequence(Emdi &emdi) {
+    emdi.closeAll();
+    qApp->quit();
+}
+
+void actionDispatch(Emdi &,     const QAction *);
+void actionDispatch(Emdi &emdi, const QAction *act) {
+    if (act->objectName() == "actionExit") {
+        quitSequence(emdi);
+    }
+}
+
+
 QWidget *buttonWindow(Emdi &, docVec_t &);
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     QWidget *w = new QWidget();
@@ -65,11 +80,6 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
         newDoc<SchDocument>("Main Editor", emdi, docVec);});
-
-//    pb = new QPushButton("New Text Doc");
-//    vb->addWidget(pb);
-//    QObject::connect(pb, &QPushButton::clicked, [&](){
-//        newDoc<TxtDocument>("Main Editor", emdi, docVec);});
 
     pb = new QPushButton("Close Current Doc");
     vb->addWidget(pb);
@@ -139,22 +149,24 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     pb = new QPushButton("Quit");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        emdi.closeAll();
-        qApp->quit();});
+        quitSequence(emdi);
+    });
 
     vb->addStretch();
     w->setLayout(vb);
     return w;
 }
 
+
+
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
-    ActionDispatcher ad;
 
     Emdi emdi;
-    emdi.setMainWindowCtor([&ad](){
+    emdi.setMainWindowCtor([&emdi](){
         MainWindow *mw = new MainWindow;
-        mw->setDispatcher(&ad);
+        QObject::connect(mw, &MainWindow::actionTriggered,
+                         [&emdi](QAction *act){actionDispatch(emdi, act);});
         return mw;
     });
     emdi.setMdiWindowCtor([](){return new QMdiSubWindow;});
