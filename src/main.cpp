@@ -57,10 +57,12 @@ void quitSequence(Emdi &emdi) {
     qApp->quit();
 }
 
-void actionDispatch(Emdi &,     const QAction *);
-void actionDispatch(Emdi &emdi, const QAction *act) {
+void actionDispatch(Emdi &,     docVec_t &,        const QAction *);
+void actionDispatch(Emdi &emdi, docVec_t & docVec, const QAction *act) {
     if (act->objectName() == "actionExit") {
         quitSequence(emdi);
+    } else if (act->objectName() == "actionNewSymbolLibrary") {
+        newDoc<SchLibDocument>("Main Editor", emdi, docVec);
     }
 }
 
@@ -163,10 +165,13 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     Emdi emdi;
-    emdi.setMainWindowCtor([&emdi](){
+    docVec_t docVec;
+
+    emdi.setMainWindowCtor([&](){
         MainWindow *mw = new MainWindow;
         QObject::connect(mw, &MainWindow::actionTriggered,
-                         [&emdi](QAction *act){actionDispatch(emdi, act);});
+                         [&](QAction *act){
+                            actionDispatch(emdi, docVec, act);});
         return mw;
     });
     emdi.setMdiWindowCtor([](){return new QMdiSubWindow;});
@@ -176,7 +181,6 @@ int main(int argc, char *argv[]) {
     MainWindow *mw = static_cast<MainWindow *>(emdi.newMainWindow());
     mw->menuBar()->addAction("fromMain");
 
-    docVec_t docVec;
     QObject::connect(&emdi, &Emdi::docClosed, [&docVec](void *p) {
         docVec.remove_if([&](const std::unique_ptr<Document> & up) {
             return up.get() == static_cast<Document *>(p);});});

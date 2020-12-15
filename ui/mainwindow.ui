@@ -31,8 +31,8 @@
      <property name="title">
       <string>New Library</string>
      </property>
-     <addaction name="actionSymbol_Library"/>
-     <addaction name="actionFootprint_Library"/>
+     <addaction name="actionNewSymbolLibrary"/>
+     <addaction name="actionNewFootprintLibrary"/>
     </widget>
     <widget class="QMenu" name="menuNew_Document">
      <property name="title">
@@ -91,7 +91,7 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionSymbol_Library">
+  <action name="actionNewSymbolLibrary">
    <property name="icon">
     <iconset resource="../llamasource.qrc">
      <normaloff>:/actions/im-gadugadu.png</normaloff>:/actions/im-gadugadu.png</iconset>
@@ -100,7 +100,7 @@
     <string>Symbol Library</string>
    </property>
   </action>
-  <action name="actionFootprint_Library">
+  <action name="actionNewFootprintLibrary">
    <property name="icon">
     <iconset resource="../llamasource.qrc">
      <normaloff>:/actions/journal-new.png</normaloff>:/actions/journal-new.png</iconset>
