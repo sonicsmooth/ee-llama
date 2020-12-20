@@ -2,7 +2,6 @@
 #include "mainwindow.h"
 #include "emdilib.h"
 #include "documents.h"
-#include "schlibdoc.h"
 
 #include <QAction>
 #include <QApplication>
@@ -34,9 +33,10 @@ using docVec_t = std::list<std::unique_ptr<IDocument> >;
 using dispatchMap_t = std::map<QString, std::function<void()>>;
 
 template <typename T> std::string docString() {return "undefined";}
-template <> std::string docString<SchLibDocument>() {return "SchLibDocument_";}
+template <> std::string docString<SymbolLibDocument>() {return "SchLibDocument_";}
+template <> std::string docString<FootprintLibDocument>() {return "FootprintLibDocument_";}
 template <> std::string docString<SchDocument>() {return "SchDocument_";}
-template <> std::string docString<TxtDocument>() {return "TxtDocument_";}
+template <> std::string docString<PCBDocument>() {return "PCBDocument_";}
 
 template<typename T> std::string docName() {
     static int idx = 0;
@@ -67,12 +67,22 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     QVBoxLayout *vb = new QVBoxLayout();
     QPushButton *pb;
 
-    pb = new QPushButton("New Sch. Library Doc");
+    pb = new QPushButton("New Symbol Library");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        newDoc<SchLibDocument>("Main Editor", emdi, docVec);});
+        newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);});
 
-    pb = new QPushButton("New Schematic Doc");
+    pb = new QPushButton("New Footprint Library");
+    vb->addWidget(pb);
+    QObject::connect(pb, &QPushButton::clicked, [&](){
+        newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);});
+
+    pb = new QPushButton("New Schematic");
+    vb->addWidget(pb);
+    QObject::connect(pb, &QPushButton::clicked, [&](){
+        newDoc<SchDocument>("Main Editor", emdi, docVec);});
+
+    pb = new QPushButton("New PCB");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
         newDoc<SchDocument>("Main Editor", emdi, docVec);});
@@ -81,36 +91,6 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
         emdi.closeDocument();});
-
-    pb = new QPushButton("Close Doc by Name");
-    vb->addWidget(pb);
-    QObject::connect(pb, &QPushButton::clicked, [&](){
-        bool ok;
-        QString text = QInputDialog::getText(nullptr,
-                        "Close document by name",  "Document name:",
-                        QLineEdit::Normal, "", &ok);
-        if (ok && !text.isEmpty()) {
-            if (!emdi.closeDocument(text.toStdString())) {
-                QMessageBox msgBox;
-                msgBox.setText(QString("%1 cannot be found.").arg(text));
-                msgBox.setIcon(QMessageBox::Warning);
-                msgBox.exec();
-            }
-        }
-    });
-
-    pb = new QPushButton("Close Doc by ptr");
-    vb->addWidget(pb);
-    QObject::connect(pb, &QPushButton::clicked, [&](){
-        if (!docVec.size())
-            return;
-        if (!emdi.closeDocument(docVec.front().get())) {
-            QMessageBox msgBox;
-            msgBox.setText("First doc cannot be found.");
-            msgBox.setIcon(QMessageBox::Warning);
-            msgBox.exec();
-        }
-    });
 
     pb = new QPushButton("Duplicate Current MDI");
     vb->addWidget(pb);
@@ -135,7 +115,7 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     pb = new QPushButton("Properties Dock");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        emdi.showDockFrame("Doc Properties");});
+        emdi.showDockFrame("Properties");});
 
     pb = new QPushButton("Hierarchy Dock");
     vb->addWidget(pb);
@@ -173,10 +153,10 @@ auto mainCtor(const dispatchMap_t & dm) {
 dispatchMap_t dispatchMap(Emdi &, docVec_t &);
 dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dispatchMap_t dm;
-    dm["actionNewSymbolLibrary"] = [&](){newDoc<SchLibDocument>("Main Editor", emdi, docVec);};
-    dm["actionNewFootprintLibrary"] = [&](){};
+    dm["actionNewSymbolLibrary"] = [&](){newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewFootprintLibrary"] = [&](){newDoc<FootprintLibDocument>("Main Editor", emdi, docVec);};
     dm["actionNewSchematic"] = [&](){newDoc<SchDocument>("Main Editor", emdi, docVec);};
-    dm["actionNewPCB"] = [&](){};
+    dm["actionNewPCB"] = [&](){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](){};
     dm["actionSave"] = [&](){};
     dm["actionSaveAs"] = [&](){};

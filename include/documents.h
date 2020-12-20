@@ -5,14 +5,14 @@
 #include "menuadder.h"
 #include <string>
 
-class TxtDocument : public IDocument, public IMenuAdder {
+class SymbolLibDocument    : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;
     menus_t m_menus;
 public:
-    TxtDocument(const std::string &);
-    ~TxtDocument() override;
+    SymbolLibDocument(const std::string &);
+    ~SymbolLibDocument() override;
     void init() override;
     void done() override;
     bool isActive() override;
@@ -21,8 +21,23 @@ public:
     const std::string & name() const override;
     const menus_t & menus() const override;
 };
-
-class SchDocument : public IDocument, public IMenuAdder {
+class FootprintLibDocument : public IDocument, public IMenuAdder {
+private:
+    const std::string m_name;
+    bool m_activeState;
+    menus_t m_menus;
+public:
+    FootprintLibDocument(const std::string &);
+    ~FootprintLibDocument() override;
+    void init() override;
+    void done() override;
+    bool isActive() override;
+    bool supportsUserType(const std::string &) const override;
+    QWidget *newView(const std::string &) const override;
+    const std::string & name() const override;
+    const menus_t & menus() const override;
+};
+class SchDocument          : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;
@@ -38,19 +53,14 @@ public:
     const std::string & name() const override;
     const menus_t & menus() const override;
 };
-
-// Not sure what's going on with this one
-// It's not an MDI type of thing, but then again,
-// This is just a header of document types.
-// Certainly a project is a document type, yes?
-class PrjDocument : public IDocument, public IMenuAdder {
+class PCBDocument          : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;
     menus_t m_menus;
 public:
-    PrjDocument(const std::string &);
-    ~PrjDocument() override;
+    PCBDocument(const std::string &);
+    ~PCBDocument() override;
     void init() override;
     void done() override;
     bool isActive() override;
@@ -59,6 +69,7 @@ public:
     const std::string & name() const override;
     const menus_t & menus() const override;
 };
+
 
 
 #endif

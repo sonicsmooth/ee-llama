@@ -11,14 +11,12 @@ CONFIG += c++17
 SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
-    src/documents.cpp \
-    src/schlibdoc.cpp
+    src/documents.cpp
 
 HEADERS += \
     include/mainwindow.h \
     include/documents.h \
-    include/menuadder.h \
-    include/schlibdoc.h
+    include/menuadder.h
 
 INCLUDEPATH += \
     include \
