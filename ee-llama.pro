@@ -17,6 +17,7 @@ SOURCES += \
 HEADERS += \
     include/mainwindow.h \
     include/documents.h \
+    include/menuadder.h \
     include/schlibdoc.h
 
 INCLUDEPATH += \

@@ -30,7 +30,7 @@
 
 
 
-using docVec_t = std::list<std::unique_ptr<Document> >;
+using docVec_t = std::list<std::unique_ptr<IDocument> >;
 using dispatchMap_t = std::map<QString, std::function<void()>>;
 
 template <typename T> std::string docString() {return "undefined";}
@@ -156,11 +156,13 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
 
 auto makeDispatch(const dispatchMap_t &);
 auto makeDispatch(const dispatchMap_t & dm) {
-    return [&](QAction *act) {dm.at(act->objectName())();};
+    return [&](QAction *act) {
+        dm.at(act->objectName())();
+    };
 }
 
-auto makeMainCtor(const dispatchMap_t &);
-auto makeMainCtor(const dispatchMap_t & dm) {
+auto mainCtor(const dispatchMap_t &);
+auto mainCtor(const dispatchMap_t & dm) {
     return [&]() {
         MainWindow *mw = new MainWindow;
         QObject::connect(mw, &MainWindow::actionTriggered, makeDispatch(dm));
@@ -170,21 +172,21 @@ auto makeMainCtor(const dispatchMap_t & dm) {
 
 dispatchMap_t dispatchMap(Emdi &, docVec_t &);
 dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
-    dispatchMap_t gdm;
-    gdm["actionNewSymbolLibrary"] = [&](){newDoc<SchLibDocument>("Main Editor", emdi, docVec);};
-    gdm["actionNewFootprintLibrary"] = [&](){};
-    gdm["actionNewSchematic"] = [&](){newDoc<SchDocument>("Main Editor", emdi, docVec);};
-    gdm["actionNewPCB"] = [&](){};
-    gdm["actionOpen"] = [&](){};
-    gdm["actionSave"] = [&](){};
-    gdm["actionSaveAs"] = [&](){};
-    gdm["actionCloseDoc"] = [&](){emdi.closeDocument();};
-    gdm["actionExit"] = [&](){quitSequence(emdi);};
-    gdm["actionViewProperties"] = [&](){emdi.showDockFrame("Properties");};
-    gdm["actionViewHierarchy"] = [&](){emdi.showDockFrame("Hierarchy");};
-    gdm["actionDuplicateMDI"] = [&](){emdi.duplicateMdiFrame();};
-    gdm["actionDupAndPopoutMDI"] = [&](){emdi.duplicateAndPopoutMdiFrame();};
-    return gdm;
+    dispatchMap_t dm;
+    dm["actionNewSymbolLibrary"] = [&](){newDoc<SchLibDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewFootprintLibrary"] = [&](){};
+    dm["actionNewSchematic"] = [&](){newDoc<SchDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewPCB"] = [&](){};
+    dm["actionOpen"] = [&](){};
+    dm["actionSave"] = [&](){};
+    dm["actionSaveAs"] = [&](){};
+    dm["actionCloseDoc"] = [&](){emdi.closeDocument();};
+    dm["actionExit"] = [&](){quitSequence(emdi);};
+    dm["actionViewProperties"] = [&](){emdi.showDockFrame("Properties");};
+    dm["actionViewHierarchy"] = [&](){emdi.showDockFrame("Hierarchy");};
+    dm["actionDuplicateMDI"] = [&](){emdi.duplicateMdiFrame();};
+    dm["actionDupAndPopoutMDI"] = [&](){emdi.duplicateAndPopoutMdiFrame();};
+    return dm;
 }
 
 int main(int argc, char *argv[]) {
@@ -194,19 +196,19 @@ int main(int argc, char *argv[]) {
     docVec_t docVec;
     dispatchMap_t dm = dispatchMap(emdi, docVec);
 
-    // Set up constructors.
-    // Main constructor attaches action signal to dispatcher
-    emdi.setMainWindowCtor(makeMainCtor(dm));
+    // Set up constructors
+    emdi.setMainWindowCtor(mainCtor(dm)); // attaches action signal to dispatcher
     emdi.setMdiWindowCtor([](){return new QMdiSubWindow;});
     emdi.setDockWidgetCtor([](){return new QDockWidget;});
-
 
     MainWindow *mw = static_cast<MainWindow *>(emdi.newMainWindow());
     mw->menuBar()->addAction("fromMain");
 
+    // The document close signal should be exposed at this level
+    // since this is where we keep the documents
     QObject::connect(&emdi, &Emdi::docClosed, [&docVec](void *p) {
-        docVec.remove_if([&](const std::unique_ptr<Document> & up) {
-            return up.get() == static_cast<Document *>(p);});});
+        docVec.remove_if([&](const std::unique_ptr<IDocument> & up) {
+            return up.get() == static_cast<IDocument *>(p);});});
 
     QWidget *buttWindow = buttonWindow(emdi, docVec);
     buttWindow->show();

@@ -2,9 +2,10 @@
 #define SCHLIBDOC_H
 
 #include "vdocument.h"
+#include "menuadder.h"
 #include <string>
 
-class SchLibDocument : public Document {
+class SchLibDocument : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;

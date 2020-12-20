@@ -2,9 +2,10 @@
 #define DOCUMENTS_H
 
 #include "vdocument.h"
+#include "menuadder.h"
 #include <string>
 
-class TxtDocument : public Document {
+class TxtDocument : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;
@@ -21,7 +22,7 @@ public:
     const menus_t & menus() const override;
 };
 
-class SchDocument : public Document {
+class SchDocument : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;
@@ -42,7 +43,7 @@ public:
 // It's not an MDI type of thing, but then again,
 // This is just a header of document types.
 // Certainly a project is a document type, yes?
-class PrjDocument : public Document {
+class PrjDocument : public IDocument, public IMenuAdder {
 private:
     const std::string m_name;
     bool m_activeState;
