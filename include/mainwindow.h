@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <actiondispatcher.h>
 #include <QAction>
 #include <QDebug>
 #include <QMainWindow>
@@ -24,7 +23,6 @@ private:
     Ui::MainWindow *ui;
 signals:
     void actionTriggered(QAction *);
-
 
 };
 #endif // MAINWINDOW_H

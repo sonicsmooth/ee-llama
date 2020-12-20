@@ -9,7 +9,6 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    src/actiondispatcher.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
     src/documents.cpp \
@@ -18,8 +17,7 @@ SOURCES += \
 HEADERS += \
     include/mainwindow.h \
     include/documents.h \
-    include/schlibdoc.h \
-    include/actiondispatcher.h
+    include/schlibdoc.h
 
 INCLUDEPATH += \
     include \
