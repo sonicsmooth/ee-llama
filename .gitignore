@@ -76,3 +76,4 @@ Thumbs.db
 
 # qt shadow build directories
 build-*/*
+icons/
