@@ -154,10 +154,10 @@ auto mainCtor(const dispatchMap_t & dm) {
 
 void updateMenus(const Emdi &, const QMdiSubWindow *);
 void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
-    const IMenuSource *src = reinterpret_cast<const IMenuSource *>(emdi.document(sw));
-    qDebug() << src;
-    auto m = src->menus();
-    //qDebug() << src->menus();
+    //const IMenuSource *src = reinterpret_cast<const IMenuSource *>(emdi.document(sw));
+    //qDebug() << src;
+    //auto m = src->menus();
+    qDebug() << emdi.document(sw);
     // TODO: documents themselves are not menu sources, so this should be cast this way
     // TODO: The menu source comes from the userType
     // TODO: So there should be some standalone object associated with the subwindow's
