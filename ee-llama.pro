@@ -50,9 +50,7 @@ CONFIG(debug, debug|release) {
 
 CONFIG(release, debug|release) {
     LIBS += -L$$PWD/../emdi/emdilib/build-qtemdilib-Desktop_Qt_5_12_6_MSVC2017_64bit-Release/release/ -lemdilib
-    #LIBS += -L$$PWD/'../../Program Files (x86)/Visual Leak Detector/lib/Win64/' -lvl
     PRE_TARGETDEPS += $$PWD/../emdi/emdilib/build-qtemdilib-Desktop_Qt_5_12_6_MSVC2017_64bit-Release/release/emdilib.lib
-    #PRE_TARGETDEPS += $$PWD/'../../Program Files (x86)/Visual Leak Detector/lib/Win64/vl.lib'
     ee-llama.depends = emdilib
 }
 
