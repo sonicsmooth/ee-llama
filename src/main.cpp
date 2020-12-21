@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "emdilib.h"
 #include "documents.h"
+#include "menuadder.h"
 
 #include <QAction>
 #include <QApplication>
@@ -141,6 +142,7 @@ auto makeDispatch(const dispatchMap_t & dm) {
     };
 }
 
+
 auto mainCtor(const dispatchMap_t &);
 auto mainCtor(const dispatchMap_t & dm) {
     return [&]() {
@@ -148,6 +150,19 @@ auto mainCtor(const dispatchMap_t & dm) {
         QObject::connect(mw, &MainWindow::actionTriggered, makeDispatch(dm));
         return mw;
     };
+}
+
+void updateMenus(const Emdi &, const QMdiSubWindow *);
+void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
+    const IMenuSource *src = reinterpret_cast<const IMenuSource *>(emdi.document(sw));
+    qDebug() << src;
+    auto m = src->menus();
+    //qDebug() << src->menus();
+    // TODO: documents themselves are not menu sources, so this should be cast this way
+    // TODO: The menu source comes from the userType
+    // TODO: So there should be some standalone object associated with the subwindow's
+    // TODO: usertype.
+
 }
 
 dispatchMap_t dispatchMap(Emdi &, docVec_t &);
@@ -172,6 +187,7 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
+    // Enhanced MDI, list of documents, dispatch map
     Emdi emdi;
     docVec_t docVec;
     dispatchMap_t dm = dispatchMap(emdi, docVec);
@@ -181,20 +197,23 @@ int main(int argc, char *argv[]) {
     emdi.setMdiWindowCtor([](){return new QMdiSubWindow;});
     emdi.setDockWidgetCtor([](){return new QDockWidget;});
 
-    MainWindow *mw = static_cast<MainWindow *>(emdi.newMainWindow());
-    mw->menuBar()->addAction("fromMain");
-
     // The document close signal should be exposed at this level
     // since this is where we keep the documents
-    QObject::connect(&emdi, &Emdi::docClosed, [&docVec](void *p) {
-        docVec.remove_if([&](const std::unique_ptr<IDocument> & up) {
-            return up.get() == static_cast<IDocument *>(p);});});
+    QObject::connect(&emdi, &Emdi::subWindowActivated,
+        [&emdi](const QMdiSubWindow *sw) {
+            updateMenus(emdi, sw);});
+    QObject::connect(&emdi, &Emdi::docClosed,
+        [&docVec](void *p) {
+            docVec.remove_if([&](const std::unique_ptr<IDocument> & up) {
+                return up.get() == static_cast<IDocument *>(p);});});
 
-    QWidget *buttWindow = buttonWindow(emdi, docVec);
-    buttWindow->show();
+    // Main window and external toolbar
+    emdi.newMainWindow();
+    //QWidget *buttWindow = buttonWindow(emdi, docVec);
+    //buttWindow->show();
     a.exec();
 
-    delete buttWindow;
+    //delete buttWindow;
     qDebug("Done");
 
 }

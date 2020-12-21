@@ -10,9 +10,9 @@ using menus_t = std::vector<QMenu *>;
 // or other thing that need to add a menu
 // to the mainWindow.
 
-class IMenuAdder {
+class IMenuSource {
 public:
-    virtual ~IMenuAdder() {}
+    virtual ~IMenuSource() {}
     virtual const menus_t & menus() const = 0;
 };
 

@@ -5,7 +5,7 @@
 #include "menuadder.h"
 #include <string>
 
-class SymbolLibDocument    : public IDocument, public IMenuAdder {
+class SymbolLibDocument    : public IDocument, public IMenuSource {
 private:
     const std::string m_name;
     bool m_activeState;
@@ -21,7 +21,7 @@ public:
     const std::string & name() const override;
     const menus_t & menus() const override;
 };
-class FootprintLibDocument : public IDocument, public IMenuAdder {
+class FootprintLibDocument : public IDocument, public IMenuSource {
 private:
     const std::string m_name;
     bool m_activeState;
@@ -37,7 +37,7 @@ public:
     const std::string & name() const override;
     const menus_t & menus() const override;
 };
-class SchDocument          : public IDocument, public IMenuAdder {
+class SchDocument          : public IDocument, public IMenuSource {
 private:
     const std::string m_name;
     bool m_activeState;
@@ -53,7 +53,7 @@ public:
     const std::string & name() const override;
     const menus_t & menus() const override;
 };
-class PCBDocument          : public IDocument, public IMenuAdder {
+class PCBDocument          : public IDocument, public IMenuSource {
 private:
     const std::string m_name;
     bool m_activeState;
