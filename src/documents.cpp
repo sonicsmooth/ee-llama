@@ -9,19 +9,10 @@ SymbolLibDocument::SymbolLibDocument(const std::string & name) :
     m_name(name),
     m_activeState(false)
 {
-    QMenu *m1 = new QMenu("SymbolLibMenu1");
-    m1->addAction("Open");
-    QMenu *m2 = new QMenu("SymbolLibMenu2");
-    m2->addAction("File");
-    m_menus.push_back(m1);
-    m_menus.push_back(m2);
-
 }
 SymbolLibDocument::~SymbolLibDocument() {
     done();
     qDebug() << QString("SymbolLibDocument::~SymbolLibDocument() (%1)").arg(m_name.c_str());
-    for (auto m : m_menus)
-        delete m;
 }
 void SymbolLibDocument::init() {
     if (m_activeState)
@@ -51,28 +42,16 @@ QWidget *SymbolLibDocument::newView(const std::string & userType) const {
 const std::string & SymbolLibDocument::name() const {
     return m_name;
 }
-const menus_t & SymbolLibDocument::menus() const {
-    return m_menus;
-}
 
 
 FootprintLibDocument::FootprintLibDocument(const std::string & name) :
     m_name(name),
     m_activeState(false)
 {
-    QMenu *m1 = new QMenu("SymbolLibMenu1");
-    m1->addAction("Open");
-    QMenu *m2 = new QMenu("SymbolLibMenu2");
-    m2->addAction("File");
-    m_menus.push_back(m1);
-    m_menus.push_back(m2);
-
 }
 FootprintLibDocument::~FootprintLibDocument() {
     done();
     qDebug() << QString("FootprintLibDocument::~FootprintLibDocument() (%1)").arg(m_name.c_str());
-    for (auto m : m_menus)
-        delete m;
 }
 void FootprintLibDocument::init() {
     if (m_activeState)
@@ -102,27 +81,15 @@ QWidget *FootprintLibDocument::newView(const std::string & userType) const {
 const std::string & FootprintLibDocument::name() const {
     return m_name;
 }
-const menus_t & FootprintLibDocument::menus() const {
-    return m_menus;
-}
-
 
 SchDocument::SchDocument(const std::string & name) :
     m_name(name),
     m_activeState(false)
 {
-    QMenu *m1 = new QMenu("SchMenu1");
-    m1->addAction("Rice");
-    QMenu *m2 = new QMenu("SchMenu2");
-    m2->addAction("aroni");
-    m_menus.push_back(m1);
-    m_menus.push_back(m2);
 }
 SchDocument::~SchDocument() {
     done();
     qDebug() << QString("SchDocument::~SchDocument() (%1)").arg(m_name.c_str());
-    for (auto m : m_menus)
-        delete m;
 }
 void SchDocument::init() {
     if (m_activeState)
@@ -154,27 +121,16 @@ QWidget *SchDocument::newView(const std::string & userType) const {
 const std::string & SchDocument::name() const {
     return m_name;
 }
-const menus_t & SchDocument::menus() const {
-    return m_menus;
-}
 
 
 PCBDocument::PCBDocument(const std::string & name) :
     m_name(name),
     m_activeState(false)
 {
-    QMenu *m1 = new QMenu("SchMenu1");
-    m1->addAction("Rice");
-    QMenu *m2 = new QMenu("SchMenu2");
-    m2->addAction("aroni");
-    m_menus.push_back(m1);
-    m_menus.push_back(m2);
 }
 PCBDocument::~PCBDocument() {
     done();
     qDebug() << QString("PCBDocument::~PCBDocument() (%1)").arg(m_name.c_str());
-    for (auto m : m_menus)
-        delete m;
 }
 void PCBDocument::init() {
     if (m_activeState)
@@ -204,8 +160,5 @@ QWidget *PCBDocument::newView(const std::string & userType) const {
 }
 const std::string & PCBDocument::name() const {
     return m_name;
-}
-const menus_t & PCBDocument::menus() const {
-    return m_menus;
 }
 

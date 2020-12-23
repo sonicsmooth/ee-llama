@@ -11,12 +11,14 @@ CONFIG += c++17
 SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
-    src/documents.cpp
+    src/documents.cpp \
+    src/symbollibmenus.cpp
 
 HEADERS += \
+    include/imenusource.h \
     include/mainwindow.h \
     include/documents.h \
-    include/menuadder.h
+    src/symbollibmenus.h
 
 INCLUDEPATH += \
     include \

@@ -1,15 +1,13 @@
 #ifndef DOCUMENTS_H
 #define DOCUMENTS_H
 
-#include "vdocument.h"
-#include "menuadder.h"
+#include "idocument.h"
 #include <string>
 
-class SymbolLibDocument    : public IDocument, public IMenuSource {
+class SymbolLibDocument    : public IDocument {
 private:
     const std::string m_name;
     bool m_activeState;
-    menus_t m_menus;
 public:
     SymbolLibDocument(const std::string &);
     ~SymbolLibDocument() override;
@@ -19,13 +17,11 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const menus_t & menus() const override;
 };
-class FootprintLibDocument : public IDocument, public IMenuSource {
+class FootprintLibDocument : public IDocument {
 private:
     const std::string m_name;
     bool m_activeState;
-    menus_t m_menus;
 public:
     FootprintLibDocument(const std::string &);
     ~FootprintLibDocument() override;
@@ -35,13 +31,11 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const menus_t & menus() const override;
 };
-class SchDocument          : public IDocument, public IMenuSource {
+class SchDocument          : public IDocument {
 private:
     const std::string m_name;
     bool m_activeState;
-    menus_t m_menus;
 public:
     SchDocument(const std::string &);
     ~SchDocument() override;
@@ -51,13 +45,11 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const menus_t & menus() const override;
 };
-class PCBDocument          : public IDocument, public IMenuSource {
+class PCBDocument          : public IDocument {
 private:
     const std::string m_name;
     bool m_activeState;
-    menus_t m_menus;
 public:
     PCBDocument(const std::string &);
     ~PCBDocument() override;
@@ -67,7 +59,6 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const menus_t & menus() const override;
 };
 
 

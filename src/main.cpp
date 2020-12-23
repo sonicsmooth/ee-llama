@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include "emdilib.h"
 #include "documents.h"
-#include "menuadder.h"
+#include "imenusource.h"
 
 #include <QAction>
 #include <QApplication>
@@ -162,7 +162,6 @@ void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
     // TODO: The menu source comes from the userType
     // TODO: So there should be some standalone object associated with the subwindow's
     // TODO: usertype.
-
 }
 
 dispatchMap_t dispatchMap(Emdi &, docVec_t &);
