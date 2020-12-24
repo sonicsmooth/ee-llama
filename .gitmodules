@@ -1,3 +1,6 @@
 [submodule "oxygen-icons5"]
 	path = oxygen-icons5
 	url = https://github.com/KDE/oxygen-icons5.git
+[submodule "emdi"]
+	path = emdi
+	url = https://github.com/sonicsmooth/emdi.git
