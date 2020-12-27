@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    std::vector<QAction *> actions =
+    std::vector<QAction *> normalActions =
        {ui->actionExit,
         ui->actionNewSymbolLibrary,
         ui->actionNewFootprintLibrary,
@@ -21,15 +21,25 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionSaveAs,
         ui->actionCloseDoc,
         ui->actionExit,
-        ui->actionViewProperties,
-        ui->actionViewHierarchy,
         ui->actionDuplicateMDI,
         ui->actionDupAndPopoutMDI };
    // For each action emit the signal with action as argument
-   for (auto action : actions ) {
-        connect(action, &QAction::triggered, 
-            [this,action](){actionTriggered(action);});
-   }
+    for (auto action : normalActions ) {
+         connect(action, &QAction::triggered,
+             [this, action](){
+             emit actionTriggered(action, QVariant(QVariant::Bool));});
+    }
+
+    std::vector<QAction *> checkedActions =
+       {ui->actionViewProperties,
+        ui->actionViewHierarchy };
+    for (auto action : checkedActions ) {
+         connect(action, &QAction::triggered,
+             [this, action](bool checked){
+             emit actionTriggered(action, QVariant(checked));});
+    }
+
+
 }
 
 MainWindow::~MainWindow()

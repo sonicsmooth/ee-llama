@@ -18,11 +18,11 @@ HEADERS += \
     include/imenusource.h \
     include/mainwindow.h \
     include/documents.h \
-    src/symbollibmenus.h
+    include/symbollibmenus.h
 
 INCLUDEPATH += \
     include \
-    ../emdi/emdilib/include \
+    emdi/emdilib/include \
     'C:/Program Files (x86)/Visual Leak Detector/include' \
 
 FORMS += \
@@ -41,23 +41,24 @@ MOC_DIR     = $$DESTDIR/moc
 RCC_DIR     = $$DESTDIR/rcc
 UI_DIR      = $$DESTDIR/ui
 
+BUILDNAME = build-qtemdilib-Desktop_Qt_5_15_2_MSVC2019_64bit
 
 CONFIG(debug, debug|release) {
-    LIBS += -L$$PWD/../emdi/emdilib/build-qtemdilib-Desktop_Qt_5_12_6_MSVC2017_64bit-Debug/debug/ -lemdilib
+    LIBS += -L$$PWD/emdi/emdilib/$$BUILDNAME-Debug/debug/ -lemdilib
     LIBS += -L$$PWD/'../../Program Files (x86)/Visual Leak Detector/lib/Win64/' -lvld
-    PRE_TARGETDEPS += $$PWD/../emdi/emdilib/build-qtemdilib-Desktop_Qt_5_12_6_MSVC2017_64bit-Debug/debug/emdilib.lib
-    PRE_TARGETDEPS += $$PWD/'../../Program Files (x86)/Visual Leak Detector/lib/Win64/vld.lib'
+    PRE_TARGETDEPS += $$PWD/emdi/emdilib/$$BUILDNAME-Debug/debug/emdilib.lib
+    PRE_TARGETDEPS += 'c:/Program Files (x86)/Visual Leak Detector/lib/Win64/vld.lib'
     ee-llama.depends = emdilib
 }
 
 CONFIG(release, debug|release) {
-    LIBS += -L$$PWD/../emdi/emdilib/build-qtemdilib-Desktop_Qt_5_12_6_MSVC2017_64bit-Release/release/ -lemdilib
-    PRE_TARGETDEPS += $$PWD/../emdi/emdilib/build-qtemdilib-Desktop_Qt_5_12_6_MSVC2017_64bit-Release/release/emdilib.lib
+    LIBS += -L$$PWD/emdi/emdilib/$$BUILDNAME-Release/release/ -lemdilib
+    PRE_TARGETDEPS += $$PWD/emdi/emdilib/$$BUILDNAME-Release/release/emdilib.lib
     ee-llama.depends = emdilib
 }
 
 
-DEPENDPATH += $$PWD/'../../Program Files (x86)/Visual Leak Detector/include'
+DEPENDPATH += 'c:/Program Files (x86)/Visual Leak Detector/include'
 
 RESOURCES += \
     llamasource.qrc

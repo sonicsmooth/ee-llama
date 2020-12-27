@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QMainWindow>
 #include <QMenu>
+#include <QVariant>
 #include <map>
 
 QT_BEGIN_NAMESPACE
@@ -22,7 +23,7 @@ public:
 private:
     Ui::MainWindow *ui;
 signals:
-    void actionTriggered(QAction *);
+    void actionTriggered(QAction *, const QVariant &);
 
 };
 #endif // MAINWINDOW_H

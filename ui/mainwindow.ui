@@ -199,11 +199,17 @@
    </property>
   </action>
   <action name="actionViewProperties">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Properties</string>
    </property>
   </action>
   <action name="actionViewHierarchy">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Hierarchy</string>
    </property>
