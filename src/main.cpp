@@ -2,13 +2,14 @@
 #include "mainwindow.h"
 #include "emdilib.h"
 #include "documents.h"
-#include "imenusource.h"
+#include "menudocvisitor.h"
 
 #include <QAction>
 #include <QApplication>
 #include <QDebug>
 #include <QDockWidget>
 #include <QInputDialog>
+#include <QList>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -30,10 +31,16 @@
 #include <sstream>
 
 
-
-
 using docVec_t = std::list<std::unique_ptr<IDocument> >;
 using dispatchMap_t = std::map<QString, std::function<void(const QVariant &)>>;
+
+void quitSequence(Emdi &);
+QWidget *buttonWindow(Emdi &, docVec_t &);
+dispatchMap_t dispatchMap(Emdi &, docVec_t &);
+auto makeDispatch(const dispatchMap_t &);
+auto mainCtor(const dispatchMap_t &);
+void updateMenus(const Emdi &, const QMdiSubWindow *);
+void setActionChecked(const QWidget *, const std::string & act, bool checked);
 
 template <typename T> std::string docString() {return "undefined";}
 template <> std::string docString<SymbolLibDocument>() {return "SchLibDocument_";}
@@ -57,14 +64,12 @@ void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     docVec.push_back(std::move(p));
 }
 
-void quitSequence(Emdi &);
 void quitSequence(Emdi &emdi) {
     emdi.closeAll();
     qApp->quit();
 }
 
 
-QWidget *buttonWindow(Emdi &, docVec_t &);
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     QWidget *w = new QWidget();
     QVBoxLayout *vb = new QVBoxLayout();
@@ -136,7 +141,6 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     return w;
 }
 
-dispatchMap_t dispatchMap(Emdi &, docVec_t &);
 dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dispatchMap_t dm;
     dm["actionNewSymbolLibrary"] = [&](const QVariant &){newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);};
@@ -165,7 +169,6 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     return dm;
 }
 
-auto makeDispatch(const dispatchMap_t &);
 auto makeDispatch(const dispatchMap_t & dm) {
     // Returns the fn which calls the dispatch map
     return [&](QAction *act, const QVariant & qv) {
@@ -175,7 +178,6 @@ auto makeDispatch(const dispatchMap_t & dm) {
 }
 
 
-auto mainCtor(const dispatchMap_t &);
 auto mainCtor(const dispatchMap_t & dm) {
     return [&]() {
         MainWindow *mw = new MainWindow;
@@ -185,26 +187,22 @@ auto mainCtor(const dispatchMap_t & dm) {
     };
 }
 
-IMenuSource *selectedUserTypeInst();
-IMenuSource *selectedUserTypeInst(std::string userType) {
-//    if (userType == "Main Editor")
-//        return ...
-    return nullptr;
-}
 
-
-void updateMenus(const Emdi &, const QMdiSubWindow *);
 void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
-    std::string userType = emdi.userType(sw);
-//    menus_t menus = selectedUserTypeInst(userType).menus();
+    // Use visitor pattern to get list of menus
+    const IDocument *doc = emdi.document(sw);
+    static MenuDocVisitor mdv;
+    QVariant qvmenus = doc->accept(&mdv);
+    QList<QMenu *> menus = qvmenus.value<QList<QMenu *>>();
+    for (QMenu *qm : menus) {
+        qDebug() << qm->title();
+    }
 }
 
-void setActionChecked(const QMainWindow *, const std::string & act, bool checked);
-void setActionChecked(const QMainWindow *mw, const std::string & userType, bool checked) {
+void setActionChecked(const QWidget *mw, const std::string & userType, bool checked) {
     // Iterate through actions in menus
-    for (QMenu *qm : mw->findChildren<QMenu *>()) {
+    for (const QMenu *qm : mw->findChildren<QMenu *>()) {
         for (QAction *act : qm->actions()) {
-            qDebug() << act->text();
             if (act->text() == QString::fromStdString(userType)) {
                 act->setChecked(checked);
             }
@@ -234,13 +232,7 @@ int main(int argc, char *argv[]) {
         [&docVec](void *p) {
             docVec.remove_if([&](const std::unique_ptr<IDocument> & up) {
                 return up.get() == static_cast<IDocument *>(p);});});
-    QObject::connect(&emdi, &Emdi::dockClosed,
-        [](QDockWidget *dw, std::string userType) {
-            qDebug() << userType.c_str() << dw->window();
-            auto mw = static_cast<QMainWindow *>(dw->window());
-            setActionChecked(mw, userType, false);
-
-    });
+    QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
     // Main window and external toolbar
     emdi.newMainWindow();
@@ -248,7 +240,7 @@ int main(int argc, char *argv[]) {
     buttWindow->show();
     a.exec();
 
-    //delete buttWindow;
+    delete buttWindow;
     qDebug("Done");
 
 }

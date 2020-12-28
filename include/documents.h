@@ -2,7 +2,10 @@
 #define DOCUMENTS_H
 
 #include "idocument.h"
+#include "idocvisitor.h"
 #include <string>
+
+
 
 class SymbolLibDocument    : public IDocument {
 private:
@@ -17,6 +20,7 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
+    const QVariant & accept(const IDocVisitor *) const override;
 };
 class FootprintLibDocument : public IDocument {
 private:
@@ -31,6 +35,7 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
+    const QVariant & accept(const IDocVisitor *) const override;
 };
 class SchDocument          : public IDocument {
 private:
@@ -45,6 +50,7 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
+    const QVariant & accept(const IDocVisitor *) const override;
 };
 class PCBDocument          : public IDocument {
 private:
@@ -59,7 +65,9 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
+    const QVariant & accept(const IDocVisitor *) const override;
 };
+
 
 
 

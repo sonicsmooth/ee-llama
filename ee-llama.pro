@@ -12,13 +12,13 @@ SOURCES += \
     src/main.cpp \
     src/mainwindow.cpp \
     src/documents.cpp \
-    src/symbollibmenus.cpp
+    src/menudocvisitor.cpp
 
 HEADERS += \
-    include/imenusource.h \
+    include/idocvisitor.h \
     include/mainwindow.h \
     include/documents.h \
-    include/symbollibmenus.h
+    include/menudocvisitor.h
 
 INCLUDEPATH += \
     include \
