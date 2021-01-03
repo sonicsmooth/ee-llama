@@ -187,7 +187,8 @@ auto mainCtor(const dispatchMap_t & dm) {
     };
 }
 
-
+// TODO: Create something like defaultMenus()
+// TODO: and call this when doc is closed
 void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
     // Use visitor pattern to get list of menus
     const IDocument *doc = emdi.document(sw);
@@ -196,10 +197,10 @@ void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
     QList<QMenu *> menus = qvmenus.value<QList<QMenu *>>();
 
     QMainWindow *mw = static_cast<QMainWindow *>(sw->window());
-    //mw->menuBar()->clear();
+    mw->menuBar()->clear();
+    // defaultMenus();
     for (QMenu *qm : menus) {
         mw->menuBar()->addMenu(qm);
-        //qDebug() << qm->title();
     }
 }
 
@@ -232,6 +233,7 @@ int main(int argc, char *argv[]) {
     QObject::connect(&emdi, &Emdi::subWindowActivated,
         [&emdi](const QMdiSubWindow *sw) {
             updateMenus(emdi, sw);});
+
     QObject::connect(&emdi, &Emdi::docClosed,
         [&docVec](void *p) {
             docVec.remove_if([&](const std::unique_ptr<IDocument> & up) {
