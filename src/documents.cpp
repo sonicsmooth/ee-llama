@@ -42,7 +42,7 @@ QWidget *SymbolLibDocument::newView(const std::string & userType) const {
 const std::string & SymbolLibDocument::name() const {
     return m_name;
 }
-const QVariant & SymbolLibDocument::accept(const IDocVisitor *dv) const {
+const QVariant & SymbolLibDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
 
@@ -84,7 +84,7 @@ QWidget *FootprintLibDocument::newView(const std::string & userType) const {
 const std::string & FootprintLibDocument::name() const {
     return m_name;
 }
-const QVariant & FootprintLibDocument::accept(const IDocVisitor *dv) const {
+const QVariant & FootprintLibDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
 
@@ -127,7 +127,7 @@ QWidget *SchDocument::newView(const std::string & userType) const {
 const std::string & SchDocument::name() const {
     return m_name;
 }
-const QVariant & SchDocument::accept(const IDocVisitor *dv) const {
+const QVariant & SchDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
 
@@ -169,7 +169,7 @@ QWidget *PCBDocument::newView(const std::string & userType) const {
 const std::string & PCBDocument::name() const {
     return m_name;
 }
-const QVariant & PCBDocument::accept(const IDocVisitor *dv) const {
+const QVariant & PCBDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
 

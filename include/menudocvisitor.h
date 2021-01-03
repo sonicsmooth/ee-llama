@@ -19,12 +19,12 @@ private:
     QVariant m_PCBDocMenus;
 
 public:
-    ~MenuDocVisitor();
+    virtual ~MenuDocVisitor() override;
     MenuDocVisitor();
-    const QVariant & visit(const SymbolLibDocument *) const;
-    const QVariant & visit(const FootprintLibDocument *) const;
-    const QVariant & visit(const SchDocument *) const;
-    const QVariant & visit(const PCBDocument *) const;
+    const QVariant & visit(const SymbolLibDocument *) override;
+    const QVariant & visit(const FootprintLibDocument *) override;
+    const QVariant & visit(const SchDocument *) override;
+    const QVariant & visit(const PCBDocument *) override;
 };
 
 

@@ -157,13 +157,13 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
             emdi.showDockFrame("Properties");
         } else {
             emdi.closeDockFrame("Properties");
-        };};
+        }};
     dm["actionViewHierarchy"] = [&](const QVariant & qv){
         if (qv.toBool()) {
             emdi.showDockFrame("Hierarchy");
         } else {
             emdi.closeDockFrame("Hierarchy");
-        };};
+        }};
     dm["actionDuplicateMDI"] = [&](const QVariant &){emdi.duplicateMdiFrame();};
     dm["actionDupAndPopoutMDI"] = [&](const QVariant &){emdi.duplicateAndPopoutMdiFrame();};
     return dm;
@@ -192,10 +192,14 @@ void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
     // Use visitor pattern to get list of menus
     const IDocument *doc = emdi.document(sw);
     static MenuDocVisitor mdv;
-    QVariant qvmenus = doc->accept(&mdv);
+    QVariant qvmenus = const_cast<IDocument *>(doc)->accept(&mdv);
     QList<QMenu *> menus = qvmenus.value<QList<QMenu *>>();
+
+    QMainWindow *mw = static_cast<QMainWindow *>(sw->window());
+    //mw->menuBar()->clear();
     for (QMenu *qm : menus) {
-        qDebug() << qm->title();
+        mw->menuBar()->addMenu(qm);
+        //qDebug() << qm->title();
     }
 }
 
