@@ -41,13 +41,14 @@
      <addaction name="actionNewSchematic"/>
      <addaction name="actionNewPCB"/>
     </widget>
-    <addaction name="actionNewSymbolLibrary"/>
     <addaction name="menuNew"/>
     <addaction name="menuNew_Document"/>
     <addaction name="actionOpen"/>
     <addaction name="separator"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSaveAll"/>
     <addaction name="actionSaveAs"/>
+    <addaction name="actionSaveCopyAs"/>
     <addaction name="separator"/>
     <addaction name="actionCloseDoc"/>
     <addaction name="separator"/>
@@ -180,6 +181,24 @@
     <string>Save As...</string>
    </property>
   </action>
+  <action name="actionSaveCopyAs">
+   <property name="icon">
+    <iconset resource="../llamasource.qrc">
+     <normaloff>:/actions/document-save-as.png</normaloff>:/actions/document-save-as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Copy As...</string>
+   </property>
+  </action>
+  <action name="actionSaveAll">
+   <property name="icon">
+    <iconset resource="../llamasource.qrc">
+     <normaloff>:/actions/document-save-all.png</normaloff>:/actions/document-save-all.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save All</string>
+   </property>
+  </action>  
   <action name="actionCloseDoc">
    <property name="icon">
     <iconset resource="../llamasource.qrc">
@@ -224,6 +243,7 @@
     <string>Duplicate and Popout</string>
    </property>
   </action>
+
  </widget>
  <resources>
   <include location="../llamasource.qrc"/>

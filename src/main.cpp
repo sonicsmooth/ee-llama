@@ -39,19 +39,25 @@ QWidget *buttonWindow(Emdi &, docVec_t &);
 dispatchMap_t dispatchMap(Emdi &, docVec_t &);
 auto makeDispatch(const dispatchMap_t &);
 auto mainCtor(const dispatchMap_t &);
-void updateMenus(const Emdi &, const QMdiSubWindow *);
+//void updateMenus(const Emdi &, const QMdiSubWindow *);
 void setActionChecked(const QWidget *, const std::string & act, bool checked);
 
 template <typename T> std::string docString() {return "undefined";}
-template <> std::string docString<SymbolLibDocument>() {return "SchLibDocument_";}
+template <> std::string docString<SymbolLibDocument>() {return "SymLibDocument_";}
 template <> std::string docString<FootprintLibDocument>() {return "FootprintLibDocument_";}
 template <> std::string docString<SchDocument>() {return "SchDocument_";}
 template <> std::string docString<PCBDocument>() {return "PCBDocument_";}
 
+template <typename T> std::string docExt() {return "undefined";}
+template <> std::string docExt<SymbolLibDocument>() {return ".SymLib";}
+template <> std::string docExt<FootprintLibDocument>() {return ".FootLib";}
+template <> std::string docExt<SchDocument>() {return ".SchDoc";}
+template <> std::string docExt<PCBDocument>() {return ".PcbDoc";}
+
 template<typename T> std::string docName() {
     static int idx = 0;
     std::stringstream ss;
-    ss << docString<T>() << std::setfill('0') <<std::setw(2) << idx++;
+    ss << docString<T>() << std::setfill('0') <<std::setw(2) << idx++ << docExt<T>();
     return ss.str();
 }
 
@@ -187,22 +193,22 @@ auto mainCtor(const dispatchMap_t & dm) {
     };
 }
 
-// TODO: Create something like defaultMenus()
-// TODO: and call this when doc is closed
-void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
-    // Use visitor pattern to get list of menus
-    const IDocument *doc = emdi.document(sw);
-    static MenuDocVisitor mdv;
-    QVariant qvmenus = const_cast<IDocument *>(doc)->accept(&mdv);
-    QList<QMenu *> menus = qvmenus.value<QList<QMenu *>>();
+//// TODO: Create something like defaultMenus()
+//// TODO: and call this when doc is closed
+//void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
+//    // Use visitor pattern to get list of menus
+//    const IDocument *doc = emdi.document(sw);
+//    static MenuDocVisitor mdv;
+//    QVariant qvmenus = const_cast<IDocument *>(doc)->accept(&mdv);
+//    QList<QMenu *> menus = qvmenus.value<QList<QMenu *>>();
 
-    QMainWindow *mw = static_cast<QMainWindow *>(sw->window());
-    mw->menuBar()->clear();
-    // defaultMenus();
-    for (QMenu *qm : menus) {
-        mw->menuBar()->addMenu(qm);
-    }
-}
+//    MainWindow *mw = static_cast<MainWindow *>(sw->window());
+//    mw->menuBar()->clear();
+//    mw->setupDefaultMenus();
+//    for (QMenu *qm : menus) {
+//        mw->menuBar()->addMenu(qm);
+//    }
+//}
 
 void setActionChecked(const QWidget *mw, const std::string & userType, bool checked) {
     // Iterate through actions in menus
@@ -230,9 +236,9 @@ int main(int argc, char *argv[]) {
 
     // The document close signal should be exposed at this level
     // since this is where we keep the documents
-    QObject::connect(&emdi, &Emdi::subWindowActivated,
-        [&emdi](const QMdiSubWindow *sw) {
-            updateMenus(emdi, sw);});
+//    QObject::connect(&emdi, &Emdi::subWindowActivated,
+//        [&emdi](const QMdiSubWindow *sw) {
+//            updateMenus(emdi, sw);});
 
     QObject::connect(&emdi, &Emdi::docClosed,
         [&docVec](void *p) {

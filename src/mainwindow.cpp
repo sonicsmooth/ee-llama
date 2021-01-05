@@ -23,7 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionExit,
         ui->actionDuplicateMDI,
         ui->actionDupAndPopoutMDI };
-   // For each action emit the signal with action as argument
+
+    // For each action emit the signal with action as argument
     for (auto action : normalActions ) {
          connect(action, &QAction::triggered,
              [this, action](){
@@ -45,4 +46,8 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::setupDefaultMenus() {
+    ui->setupUi(this);
 }

@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+    void setupDefaultMenus();
 
 private:
     Ui::MainWindow *ui;

@@ -1,9 +1,14 @@
 #include "documents.h"
+#include "dbutils.h"
 
 #include <QTextEdit>
 #include <QDebug>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 
 #include <string>
+
+
 
 SymbolLibDocument::SymbolLibDocument(const std::string & name) :
     m_name(name),
@@ -15,13 +20,31 @@ SymbolLibDocument::~SymbolLibDocument() {
     qDebug() << QString("SymbolLibDocument::~SymbolLibDocument() (%1)").arg(m_name.c_str());
 }
 void SymbolLibDocument::init() {
-    if (m_activeState)
+    if (m_activeState) {
         return;
+    } else {
+        QString name = QString::fromStdString(m_name);
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", name);
+        db.setDatabaseName(name);
+        db.open();
+        QSqlQuery query(db);
+        const
+        QStringList qsl = {"CREATE TABLE hello (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
+                           "                   name TEXT CHECK(length(name) > 0));       "};
+        executeList(query, qsl, "Could not init", __LINE__);
+    }
     m_activeState = true;
 }
 void SymbolLibDocument::done() {
-    if (!m_activeState)
+    if (!m_activeState) {
         return;
+    } else {
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", QString::fromStdString(m_name));
+            db.close();
+        }
+        QSqlDatabase::removeDatabase(QString::fromStdString(m_name));
+    }
     m_activeState = false;
 }
 bool SymbolLibDocument::isActive() {
