@@ -14,6 +14,7 @@ SOURCES += \
     src/mainwindow.cpp \
     src/documents.cpp \
     src/menudocvisitor.cpp \
+    src/filesavevisitor.cpp \
     src/sqlite3/sqlite3.c
 
 HEADERS += \
@@ -22,7 +23,9 @@ HEADERS += \
     include/mainwindow.h \
     include/documents.h \
     include/menudocvisitor.h \
+    include/filesavevisitor.h \
     include/sqlite3/sqlite3.h
+
 
 INCLUDEPATH += \
     include \

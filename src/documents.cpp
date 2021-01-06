@@ -30,8 +30,15 @@ void SymbolLibDocument::init() {
         // Does not create anything with full filename
         QString tmpname = QString::fromStdString("tmp_" + m_name);
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", tmpname);
+#if defined(QT_DEBUG)
         db.setDatabaseName(tmpname);
-        db.open();
+#elif defined(QT_NO_DEBUG)
+        db.setDatabaseName(":memory:");
+#endif
+        if(!db.open()) {
+            qDebug() << "Can't create database";
+        }
+
         QSqlQuery query(db);
         const
         QStringList qsl = {"DROP TABLE IF EXISTS hello;",
@@ -46,31 +53,10 @@ void SymbolLibDocument::done() {
     if (!m_activeState) {
         return;
     } else {
-
-
-
         // Removes and deletes temp database
         QString tmpname = QString::fromStdString("tmp_" + m_name);
         {
             QSqlDatabase db = QSqlDatabase::database(tmpname);
-            // test to save as
-            QVariant qvhandle = db.driver()->handle();
-            qDebug() << qvhandle.isValid();
-            qDebug() << qvhandle.typeName();
-            if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
-                sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
-                sqlite3 *pTo;
-                sqlite3_open(m_name.c_str(), &pTo);
-                sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
-                if (pBackup) {
-                    (void) sqlite3_backup_step(pBackup, -1);
-                    (void) sqlite3_backup_finish(pBackup);
-                }
-                int rc = sqlite3_errcode(pTo);
-                qDebug() << rc;
-            }
-
-
             db.close();
         }
         QSqlDatabase::removeDatabase(tmpname);
@@ -96,10 +82,40 @@ QWidget *SymbolLibDocument::newView(const std::string & userType) const {
 const std::string & SymbolLibDocument::name() const {
     return m_name;
 }
-const QVariant & SymbolLibDocument::accept(IDocVisitor *dv) {
+void SymbolLibDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
+void SymbolLibDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void SymbolLibDocument::save() {
+    // Saves the document.
+    // Assumes there is a tmp database eg "tmp_mysymbols.db"
+    qDebug() << "saving" << QString::fromStdString(m_name);
+    save(m_name);
 
+}
+void SymbolLibDocument::save(const std::string & name) {
+    qDebug() << "saving as" << QString::fromStdString(name);
+    QString tmpname = QString::fromStdString("tmp_" + m_name);
+    QSqlDatabase db = QSqlDatabase::database(tmpname);
+
+    QVariant qvhandle = db.driver()->handle();
+    if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
+        sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
+        sqlite3 *pTo;
+        sqlite3_open(name.c_str(), &pTo);
+        sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
+        if (pBackup) {
+            (void) sqlite3_backup_step(pBackup, -1);
+            (void) sqlite3_backup_finish(pBackup);
+        }
+        // causes error 21 bad parameter or other API misuse,
+        // But this occurs even if open and close are called back-to-back
+        // with no operations in between
+        sqlite3_close(pTo);
+    }
+}
 
 FootprintLibDocument::FootprintLibDocument(const std::string & name) :
     m_name(name),
@@ -138,8 +154,17 @@ QWidget *FootprintLibDocument::newView(const std::string & userType) const {
 const std::string & FootprintLibDocument::name() const {
     return m_name;
 }
-const QVariant & FootprintLibDocument::accept(IDocVisitor *dv) {
+void FootprintLibDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
+}
+void FootprintLibDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void FootprintLibDocument::save() {
+
+}
+void FootprintLibDocument::save(const std::string & name) {
+    qDebug() << "saving as" << QString::fromStdString(name);
 }
 
 SchDocument::SchDocument(const std::string & name) :
@@ -181,9 +206,19 @@ QWidget *SchDocument::newView(const std::string & userType) const {
 const std::string & SchDocument::name() const {
     return m_name;
 }
-const QVariant & SchDocument::accept(IDocVisitor *dv) {
+void SchDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
+void SchDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void SchDocument::save() {
+
+}
+void SchDocument::save(const std::string & name) {
+    qDebug() << "saving as" << QString::fromStdString(name);
+}
+
 
 PCBDocument::PCBDocument(const std::string & name) :
     m_name(name),
@@ -223,7 +258,16 @@ QWidget *PCBDocument::newView(const std::string & userType) const {
 const std::string & PCBDocument::name() const {
     return m_name;
 }
-const QVariant & PCBDocument::accept(IDocVisitor *dv) {
+void PCBDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
+}
+void PCBDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void PCBDocument::save() {
+
+}
+void PCBDocument::save(const std::string & name) {
+    qDebug() << "saving as" << QString::fromStdString(name);
 }
 

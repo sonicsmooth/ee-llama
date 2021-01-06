@@ -3,6 +3,7 @@
 #include "emdilib.h"
 #include "documents.h"
 #include "menudocvisitor.h"
+#include "filesavevisitor.h"
 
 #include <QAction>
 #include <QApplication>
@@ -39,8 +40,9 @@ QWidget *buttonWindow(Emdi &, docVec_t &);
 dispatchMap_t dispatchMap(Emdi &, docVec_t &);
 auto makeDispatch(const dispatchMap_t &);
 auto mainCtor(const dispatchMap_t &);
-//void updateMenus(const Emdi &, const QMdiSubWindow *);
+void updateMenus(const Emdi &, const QMdiSubWindow *);
 void setActionChecked(const QWidget *, const std::string & act, bool checked);
+void fileSave(const Emdi &, const QMainWindow *);
 
 template <typename T> std::string docString() {return "undefined";}
 template <> std::string docString<SymbolLibDocument>() {return "SymLibDocument_";}
@@ -154,7 +156,7 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dm["actionNewSchematic"] = [&](const QVariant &){newDoc<SchDocument>("Main Editor", emdi, docVec);};
     dm["actionNewPCB"] = [&](const QVariant &){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](const QVariant &){};
-    dm["actionSave"] = [&](const QVariant &){};
+    dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<QMainWindow *>());};
     dm["actionSaveAs"] = [&](const QVariant &){};
     dm["actionCloseDoc"] = [&](const QVariant &){emdi.closeDocument();};
     dm["actionExit"] = [&](const QVariant &){quitSequence(emdi);};
@@ -193,22 +195,25 @@ auto mainCtor(const dispatchMap_t & dm) {
     };
 }
 
-//// TODO: Create something like defaultMenus()
-//// TODO: and call this when doc is closed
-//void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
-//    // Use visitor pattern to get list of menus
-//    const IDocument *doc = emdi.document(sw);
-//    static MenuDocVisitor mdv;
-//    QVariant qvmenus = const_cast<IDocument *>(doc)->accept(&mdv);
-//    QList<QMenu *> menus = qvmenus.value<QList<QMenu *>>();
+// TODO: Create something like defaultMenus()
+// TODO: and call this when doc is closed
+void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
+    // Use visitor pattern to get list of menus
+    // This is static so menus don't disappear.  This is tied
+    // in with the destructor deletions of menu pointers,
+    // but is bad practice probably.
+    static MenuDocVisitor mdv;
+    const IDocument *doc = emdi.document(sw);
+    doc->accept(&mdv);
+    const QList<QMenu *> & menus = mdv.menus();
 
-//    MainWindow *mw = static_cast<MainWindow *>(sw->window());
-//    mw->menuBar()->clear();
-//    mw->setupDefaultMenus();
-//    for (QMenu *qm : menus) {
-//        mw->menuBar()->addMenu(qm);
-//    }
-//}
+    MainWindow *mw = static_cast<MainWindow *>(sw->window());
+    //mw->menuBar()->clear();
+    //mw->setupDefaultMenus();
+    for (QMenu *qm : menus) {
+        mw->menuBar()->addMenu(qm);
+    }
+}
 
 void setActionChecked(const QWidget *mw, const std::string & userType, bool checked) {
     // Iterate through actions in menus
@@ -220,6 +225,15 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
         }
     }
 }
+
+void fileSave(const Emdi & emdi, const QMainWindow *mw) {
+    // Use visitor pattern to save file
+    FileSaveVisitor fsv;
+    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
+    const QMdiSubWindow *sw = mdi->activeSubWindow();
+    emdi.document(sw)->accept(&fsv);
+}
+
 
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
@@ -236,9 +250,9 @@ int main(int argc, char *argv[]) {
 
     // The document close signal should be exposed at this level
     // since this is where we keep the documents
-//    QObject::connect(&emdi, &Emdi::subWindowActivated,
-//        [&emdi](const QMdiSubWindow *sw) {
-//            updateMenus(emdi, sw);});
+    QObject::connect(&emdi, &Emdi::subWindowActivated,
+        [&emdi](const QMdiSubWindow *sw) {
+            updateMenus(emdi, sw);});
 
     QObject::connect(&emdi, &Emdi::docClosed,
         [&docVec](void *p) {
@@ -248,7 +262,7 @@ int main(int argc, char *argv[]) {
 
     // Main window and external toolbar
     emdi.newMainWindow();
-    QWidget *buttWindow = buttonWindow(emdi, docVec);
+    //QWidget *buttWindow = buttonWindow(emdi, docVec);
     //buttWindow->show();
     a.exec();
 

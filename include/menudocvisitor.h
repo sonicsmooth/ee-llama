@@ -13,18 +13,25 @@
 
 class MenuDocVisitor : public IDocVisitor {
 private:
-    QVariant m_SymbolLibDocMenus;
-    QVariant m_FootprintLibDocMenus;
-    QVariant m_SchDocMenus;
-    QVariant m_PCBDocMenus;
+    QList<QMenu *> m_symbolLibDocMenus;
+    QList<QMenu *> m_footprintLibDocMenus;
+    QList<QMenu *> m_schDocMenus;
+    QList<QMenu *> m_PCBDocMenus;
+    QList<QMenu *> *m_returnMenus;
 
 public:
     virtual ~MenuDocVisitor() override;
     MenuDocVisitor();
-    const QVariant & visit(const SymbolLibDocument *) override;
-    const QVariant & visit(const FootprintLibDocument *) override;
-    const QVariant & visit(const SchDocument *) override;
-    const QVariant & visit(const PCBDocument *) override;
+    void visit(const SymbolLibDocument *) override;
+    void visit(const FootprintLibDocument *) override;
+    void visit(const SchDocument *) override;
+    void visit(const PCBDocument *) override;
+    void visit(SymbolLibDocument *) override {}
+    void visit(FootprintLibDocument *) override {}
+    void visit(SchDocument *) override {}
+    void visit(PCBDocument *) override {}
+    const QList<QMenu *> & menus() const {return *m_returnMenus;}
+
 };
 
 
