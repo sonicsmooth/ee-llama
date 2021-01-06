@@ -1,11 +1,14 @@
 #include "documents.h"
 #include "dbutils.h"
+#include "include/sqlite3/sqlite3.h"
 
 #include <QTextEdit>
 #include <QDebug>
 #include <QSqlDatabase>
+#include <QSqlDriver>
 #include <QSqlQuery>
 
+#include <cstdio>
 #include <string>
 
 
@@ -23,14 +26,18 @@ void SymbolLibDocument::init() {
     if (m_activeState) {
         return;
     } else {
-        QString name = QString::fromStdString(m_name);
-        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", name);
-        db.setDatabaseName(name);
+        // Creates temp database to prime save, save as, etc.
+        // Does not create anything with full filename
+        QString tmpname = QString::fromStdString("tmp_" + m_name);
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", tmpname);
+        db.setDatabaseName(tmpname);
         db.open();
         QSqlQuery query(db);
         const
-        QStringList qsl = {"CREATE TABLE hello (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
-                           "                   name TEXT CHECK(length(name) > 0));       "};
+        QStringList qsl = {"DROP TABLE IF EXISTS hello;",
+                           "CREATE TABLE hello (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
+                           "                    name TEXT CHECK(length(name) > 0));       ",
+                           "INSERT INTO hello (name) VALUES ('giraffe');"};
         executeList(query, qsl, "Could not init", __LINE__);
     }
     m_activeState = true;
@@ -39,11 +46,35 @@ void SymbolLibDocument::done() {
     if (!m_activeState) {
         return;
     } else {
+
+
+
+        // Removes and deletes temp database
+        QString tmpname = QString::fromStdString("tmp_" + m_name);
         {
-            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", QString::fromStdString(m_name));
+            QSqlDatabase db = QSqlDatabase::database(tmpname);
+            // test to save as
+            QVariant qvhandle = db.driver()->handle();
+            qDebug() << qvhandle.isValid();
+            qDebug() << qvhandle.typeName();
+            if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
+                sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
+                sqlite3 *pTo;
+                sqlite3_open(m_name.c_str(), &pTo);
+                sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
+                if (pBackup) {
+                    (void) sqlite3_backup_step(pBackup, -1);
+                    (void) sqlite3_backup_finish(pBackup);
+                }
+                int rc = sqlite3_errcode(pTo);
+                qDebug() << rc;
+            }
+
+
             db.close();
         }
-        QSqlDatabase::removeDatabase(QString::fromStdString(m_name));
+        QSqlDatabase::removeDatabase(tmpname);
+        std::remove(tmpname.toLatin1());
     }
     m_activeState = false;
 }

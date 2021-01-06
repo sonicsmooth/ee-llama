@@ -249,10 +249,10 @@ int main(int argc, char *argv[]) {
     // Main window and external toolbar
     emdi.newMainWindow();
     QWidget *buttWindow = buttonWindow(emdi, docVec);
-    buttWindow->show();
+    //buttWindow->show();
     a.exec();
 
-    delete buttWindow;
+    //delete buttWindow;
     qDebug("Done");
 
 }
