@@ -17,12 +17,17 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionNewSchematic,
         ui->actionNewPCB,
         ui->actionOpen,
-        ui->actionSave,
-        ui->actionSaveAs,
-        ui->actionCloseDoc,
         ui->actionExit,
         ui->actionDuplicateMDI,
         ui->actionDupAndPopoutMDI };
+    std::vector<QAction *> namedActions =
+       {ui->actionSave,
+        ui->actionSaveAs,
+        ui->actionCloseDoc,
+        };
+    std::vector<QAction *> checkedActions =
+       {ui->actionViewProperties,
+        ui->actionViewHierarchy };
 
     // For each action emit the signal with action as argument
     for (auto action : normalActions ) {
@@ -31,9 +36,14 @@ MainWindow::MainWindow(QWidget *parent)
              emit actionTriggered(action, QVariant(QVariant::Bool));});
     }
 
-    std::vector<QAction *> checkedActions =
-       {ui->actionViewProperties,
-        ui->actionViewHierarchy };
+    // ...and an additional argument
+    for (auto action : namedActions ) {
+         connect(action, &QAction::triggered,
+             [this, action](){
+             QVariant v = QVariant::fromValue(this);
+             emit actionTriggered(action, v);});
+    }
+
     for (auto action : checkedActions ) {
          connect(action, &QAction::triggered,
              [this, action](bool checked){

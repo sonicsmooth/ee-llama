@@ -6,53 +6,52 @@
 
 MenuDocVisitor::MenuDocVisitor()
 {
-    // We define all the extra menus for each document type here
-    // TODO: Maybe move these to the visit function and dynamically
-    // create these.  Problem is how to delete
-
 }
 
 MenuDocVisitor::~MenuDocVisitor() {
     // TODO: Verify that deleting here doesn't
     // interfere with what happens when one of these menu items
     // is actually in use
-    for (QMenu *m : m_SymbolLibDocMenus.value<QList<QMenu *>>())
+    for (QMenu *m : m_symbolLibDocMenus)
         delete m;
-    for (QMenu *m : m_FootprintLibDocMenus.value<QList<QMenu *>>())
+    for (QMenu *m : m_footprintLibDocMenus)
         delete m;
-    for (QMenu *m : m_SchDocMenus.value<QList<QMenu *>>())
+    for (QMenu *m : m_schDocMenus)
         delete m;
-    for (QMenu *m : m_PCBDocMenus.value<QList<QMenu *>>())
+    for (QMenu *m : m_PCBDocMenus)
         delete m;
 }
 
-const QVariant & MenuDocVisitor::visit(const SymbolLibDocument *doc) {
+void MenuDocVisitor::visit(const SymbolLibDocument *doc) {
+    // Mutates state of this class by adding menu items at runtime
+    // This could conceivably be done in constructor and stored statically
+    // But if this grows to support many document types, then we are
+    // creating a bunch of menus each time the visitor is constructed
+    // even though many/most of those won't be used for any given visitor
+    // instance.
     // How to get actions defined here as entries in main dispatch map?
     qDebug() << "SymbolLibDocument visiting" << doc;
-    if (m_SymbolLibDocMenus.toList().size() == 0) {
-        QList<QMenu *> symbolLibDocMenus;
+    if (m_symbolLibDocMenus.size() == 0) {
         QMenu *m1 = new QMenu("menu1");
         m1->addAction("What1");
         m1->addAction("what2");
         QMenu *m2 = new QMenu("menu2");
         m2->addAction("What3");
         m2->addAction("what4");
-        symbolLibDocMenus.push_back(m1);
-        symbolLibDocMenus.push_back(m2);
-        m_SymbolLibDocMenus.setValue(symbolLibDocMenus);
-
+        m_symbolLibDocMenus.push_back(m1);
+        m_symbolLibDocMenus.push_back(m2);
     }
-    return m_SymbolLibDocMenus;
+    m_returnMenus = &m_symbolLibDocMenus;
 }
-const QVariant & MenuDocVisitor::visit(const FootprintLibDocument *doc) {
+void MenuDocVisitor::visit(const FootprintLibDocument *doc) {
     qDebug() << "FootprintLibDocument visiting" << doc;
-    return m_FootprintLibDocMenus;
+    m_returnMenus = &m_footprintLibDocMenus;
 }
-const QVariant & MenuDocVisitor::visit(const SchDocument *doc) {
+void MenuDocVisitor::visit(const SchDocument *doc) {
     qDebug() << "SchDocument visiting" << doc;
-    return m_SchDocMenus;
+    m_returnMenus = &m_schDocMenus;
 }
-const QVariant & MenuDocVisitor::visit(const PCBDocument *doc) {
+void MenuDocVisitor::visit(const PCBDocument *doc) {
     qDebug() << "PCBDocument visiting" << doc;
-    return m_PCBDocMenus;
+    m_returnMenus = &m_PCBDocMenus;
 }

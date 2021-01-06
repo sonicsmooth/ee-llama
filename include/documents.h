@@ -20,7 +20,10 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const QVariant & accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) const override;
+    void save();
+    void save(const std::string &);
 };
 class FootprintLibDocument : public IDocument {
 private:
@@ -35,7 +38,10 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const QVariant & accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) const override;
+    void save();
+    void save(const std::string &);
 };
 class SchDocument          : public IDocument {
 private:
@@ -50,7 +56,10 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const QVariant & accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) const override;
+    void save();
+    void save(const std::string &);
 };
 class PCBDocument          : public IDocument {
 private:
@@ -65,7 +74,10 @@ public:
     bool supportsUserType(const std::string &) const override;
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
-    const QVariant & accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) override;
+    void accept(IDocVisitor *) const override;
+    void save();
+    void save(const std::string &);
 };
 
 
