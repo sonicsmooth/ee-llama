@@ -10,6 +10,8 @@ CONFIG += c++17
 
 SOURCES += \
     src/dbutils.cpp \
+    src/filesaveasvisitor.cpp \
+    src/filesavecopyasvisitor.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
     src/documents.cpp \
@@ -19,6 +21,8 @@ SOURCES += \
 
 HEADERS += \
     include/dbutils.h \
+    include/filesaveasvisitor.h \
+    include/filesavecopyasvisitor.h \
     include/idocvisitor.h \
     include/mainwindow.h \
     include/documents.h \

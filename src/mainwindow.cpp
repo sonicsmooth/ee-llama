@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
+
+    // Normal actions just trigger with no further argument
     std::vector<QAction *> normalActions =
        {ui->actionExit,
         ui->actionNewSymbolLibrary,
@@ -20,11 +22,16 @@ MainWindow::MainWindow(QWidget *parent)
         ui->actionExit,
         ui->actionDuplicateMDI,
         ui->actionDupAndPopoutMDI };
+
+    // Named actions send the action itself as argument
     std::vector<QAction *> namedActions =
        {ui->actionSave,
         ui->actionSaveAs,
+        ui->actionSaveCopyAs,
         ui->actionCloseDoc,
         };
+
+    // Checked actions send whether the action's new state is checked
     std::vector<QAction *> checkedActions =
        {ui->actionViewProperties,
         ui->actionViewHierarchy };
