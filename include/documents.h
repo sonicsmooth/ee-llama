@@ -9,8 +9,10 @@
 
 class SymbolLibDocument    : public IDocument {
 private:
-    const std::string m_name;
+    std::string m_name; // can change
+    const std::string m_connName; // doesn't change for lifetime of object
     bool m_activeState;
+    // todo: add bool dirty
 public:
     SymbolLibDocument(const std::string &);
     ~SymbolLibDocument() override;
@@ -22,12 +24,15 @@ public:
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
-    void save();
-    void save(const std::string &);
+    void setName(const std::string &) override;
+    void save() const;
+    void saveAs(const std::string &); // implies internal renaming of doc
+    void saveCopyAs(const std::string &) const;
 };
 class FootprintLibDocument : public IDocument {
 private:
-    const std::string m_name;
+    std::string m_name;
+    const std::string m_connName;
     bool m_activeState;
 public:
     FootprintLibDocument(const std::string &);
@@ -40,12 +45,15 @@ public:
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
-    void save();
-    void save(const std::string &);
+    void setName(const std::string &) override;
+    void save() const;
+    void saveAs(const std::string &); // implies internal renaming of doc
+    void saveCopyAs(const std::string &) const;
 };
 class SchDocument          : public IDocument {
 private:
-    const std::string m_name;
+    std::string m_name;
+    const std::string m_connName;
     bool m_activeState;
 public:
     SchDocument(const std::string &);
@@ -58,12 +66,15 @@ public:
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
-    void save();
-    void save(const std::string &);
+    void setName(const std::string &) override;
+    void save() const;
+    void saveAs(const std::string &); // implies internal renaming of doc
+    void saveCopyAs(const std::string &) const;
 };
 class PCBDocument          : public IDocument {
 private:
-    const std::string m_name;
+    std::string m_name;
+    const std::string m_connName;
     bool m_activeState;
 public:
     PCBDocument(const std::string &);
@@ -76,8 +87,10 @@ public:
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
-    void save();
-    void save(const std::string &);
+    void setName(const std::string &) override;
+    void save() const;
+    void saveAs(const std::string &); // implies internal renaming of doc
+    void saveCopyAs(const std::string &) const;
 };
 
 

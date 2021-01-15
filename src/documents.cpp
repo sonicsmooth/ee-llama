@@ -1,6 +1,5 @@
 #include "documents.h"
 #include "dbutils.h"
-#include "include/sqlite3/sqlite3.h"
 
 #include <QTextEdit>
 #include <QDebug>
@@ -15,6 +14,7 @@
 
 SymbolLibDocument::SymbolLibDocument(const std::string & name) :
     m_name(name),
+    m_connName(dbutils::connName()),
     m_activeState(false)
 {
 }
@@ -28,10 +28,9 @@ void SymbolLibDocument::init() {
     } else {
         // Creates temp database to prime save, save as, etc.
         // Does not create anything with full filename
-        QString tmpname = QString::fromStdString("tmp_" + m_name);
-        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", tmpname);
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", QString::fromStdString(m_connName));
 #if defined(QT_DEBUG)
-        db.setDatabaseName(tmpname);
+        db.setDatabaseName("tmp_" + QString::fromStdString(m_name));
 #elif defined(QT_NO_DEBUG)
         db.setDatabaseName(":memory:");
 #endif
@@ -45,7 +44,7 @@ void SymbolLibDocument::init() {
                            "CREATE TABLE hello (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
                            "                    name TEXT CHECK(length(name) > 0));       ",
                            "INSERT INTO hello (name) VALUES ('giraffe');"};
-        executeList(query, qsl, "Could not init", __LINE__);
+        dbutils::executeList(query, qsl, "Could not init", __LINE__);
     }
     m_activeState = true;
 }
@@ -54,7 +53,7 @@ void SymbolLibDocument::done() {
         return;
     } else {
         // Removes and deletes temp database
-        QString tmpname = QString::fromStdString("tmp_" + m_name);
+        QString tmpname = QString::fromStdString(m_connName);
         {
             QSqlDatabase db = QSqlDatabase::database(tmpname);
             db.close();
@@ -88,37 +87,26 @@ void SymbolLibDocument::accept(IDocVisitor *dv) {
 void SymbolLibDocument::accept(IDocVisitor *dv) const {
     return dv->visit(this);
 }
-void SymbolLibDocument::save() {
-    // Saves the document.
-    // Assumes there is a tmp database eg "tmp_mysymbols.db"
-    qDebug() << "saving" << QString::fromStdString(m_name);
-    save(m_name);
-
+void SymbolLibDocument::setName(const std::string & newName) {
+    m_name = newName;
 }
-void SymbolLibDocument::save(const std::string & name) {
-    qDebug() << "saving as" << QString::fromStdString(name);
-    QString tmpname = QString::fromStdString("tmp_" + m_name);
-    QSqlDatabase db = QSqlDatabase::database(tmpname);
-
-    QVariant qvhandle = db.driver()->handle();
-    if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
-        sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
-        sqlite3 *pTo;
-        sqlite3_open(name.c_str(), &pTo);
-        sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
-        if (pBackup) {
-            (void) sqlite3_backup_step(pBackup, -1);
-            (void) sqlite3_backup_finish(pBackup);
-        }
-        // causes error 21 bad parameter or other API misuse,
-        // But this occurs even if open and close are called back-to-back
-        // with no operations in between
-        sqlite3_close(pTo);
-    }
+void SymbolLibDocument::save() const {
+    // Saves the document using connName
+    dbutils::dbSaveFromTo(m_connName, m_name);
+}
+//void SymbolLibDocument::saveAs(const std::string & name) {
+//    // Changes name of document as well as saving a copy
+//    m_name = name;
+//    dbutils::dbSaveFromTo(m_connName, name);
+//}
+void SymbolLibDocument::saveCopyAs(const std::string & name) const {
+    // Save current database connection m_name as file name
+    dbutils::dbSaveFromTo(m_connName, name);
 }
 
 FootprintLibDocument::FootprintLibDocument(const std::string & name) :
     m_name(name),
+    m_connName(dbutils::connName()),
     m_activeState(false)
 {
 }
@@ -160,15 +148,26 @@ void FootprintLibDocument::accept(IDocVisitor *dv) {
 void FootprintLibDocument::accept(IDocVisitor *dv) const {
     return dv->visit(this);
 }
-void FootprintLibDocument::save() {
-
+void FootprintLibDocument::setName(const std::string & newName) {
+    m_name = newName;
 }
-void FootprintLibDocument::save(const std::string & name) {
-    qDebug() << "saving as" << QString::fromStdString(name);
+void FootprintLibDocument::save() const {
+    // Saves the document using connName
+    dbutils::dbSaveFromTo(m_connName, m_name);
+}
+//void FootprintLibDocument::saveAs(const std::string & name) {
+//    // Changes name of document as well as saving a copy
+//    m_name = name;
+//    dbutils::dbSaveFromTo(m_connName, name);
+//}
+void FootprintLibDocument::saveCopyAs(const std::string & name) const {
+    // Save current database connection m_name as file name
+    dbutils::dbSaveFromTo(m_connName, name);
 }
 
 SchDocument::SchDocument(const std::string & name) :
     m_name(name),
+    m_connName(dbutils::connName()),
     m_activeState(false)
 {
 }
@@ -212,16 +211,27 @@ void SchDocument::accept(IDocVisitor *dv) {
 void SchDocument::accept(IDocVisitor *dv) const {
     return dv->visit(this);
 }
-void SchDocument::save() {
-
+void SchDocument::setName(const std::string & newName) {
+    m_name = newName;
 }
-void SchDocument::save(const std::string & name) {
-    qDebug() << "saving as" << QString::fromStdString(name);
+void SchDocument::save() const {
+    // Saves the document using connName
+    dbutils::dbSaveFromTo(m_connName, m_name);
+}
+//void SchDocument::saveAs(const std::string & name) {
+//    // Changes name of document as well as saving a copy
+//    m_name = name;
+//    dbutils::dbSaveFromTo(m_connName, name);
+//}
+void SchDocument::saveCopyAs(const std::string & name) const {
+    // Save current database connection m_name as file name
+    dbutils::dbSaveFromTo(m_connName, name);
 }
 
 
 PCBDocument::PCBDocument(const std::string & name) :
     m_name(name),
+    m_connName(dbutils::connName()),
     m_activeState(false)
 {
 }
@@ -264,10 +274,20 @@ void PCBDocument::accept(IDocVisitor *dv) {
 void PCBDocument::accept(IDocVisitor *dv) const {
     return dv->visit(this);
 }
-void PCBDocument::save() {
-
+void PCBDocument::setName(const std::string & newName) {
+    m_name = newName;
 }
-void PCBDocument::save(const std::string & name) {
-    qDebug() << "saving as" << QString::fromStdString(name);
+void PCBDocument::save() const {
+    // Saves the document using connName
+    dbutils::dbSaveFromTo(m_connName, m_name);
+}
+//void PCBDocument::saveAs(const std::string & name) {
+//    // Changes name of document as well as saving a copy
+//    m_name = name;
+//    dbutils::dbSaveFromTo(m_connName, name);
+//}
+void PCBDocument::saveCopyAs(const std::string & name) const {
+    // Save current database connection m_name as file name
+    dbutils::dbSaveFromTo(m_connName, name);
 }
 

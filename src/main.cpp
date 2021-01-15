@@ -4,11 +4,14 @@
 #include "documents.h"
 #include "menudocvisitor.h"
 #include "filesavevisitor.h"
+#include "filesaveasvisitor.h"
+#include "filesavecopyasvisitor.h"
 
 #include <QAction>
 #include <QApplication>
 #include <QDebug>
 #include <QDockWidget>
+#include <QFileDialog>
 #include <QInputDialog>
 #include <QList>
 #include <QMenu>
@@ -43,6 +46,7 @@ auto mainCtor(const dispatchMap_t &);
 void updateMenus(const Emdi &, const QMdiSubWindow *);
 void setActionChecked(const QWidget *, const std::string & act, bool checked);
 void fileSave(const Emdi &, const QMainWindow *);
+void fileSaveCopyAs(const Emdi &, const QMainWindow *);
 
 template <typename T> std::string docString() {return "undefined";}
 template <> std::string docString<SymbolLibDocument>() {return "SymLibDocument_";}
@@ -77,6 +81,57 @@ void quitSequence(Emdi &emdi) {
     qApp->quit();
 }
 
+// TODO: Create something like defaultMenus()
+// TODO: and call this when doc is closed
+void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
+    // Use visitor pattern to get list of menus
+    // This is static so menus don't disappear.  This is tied
+    // in with the destructor deletions of menu pointers,
+    // but is bad practice probably.
+    static MenuDocVisitor mdv;
+    const IDocument *doc = emdi.document(sw);
+    doc->accept(&mdv);
+    const QList<QMenu *> & menus = mdv.menus();
+
+    MainWindow *mw = static_cast<MainWindow *>(sw->window());
+    //mw->menuBar()->clear();
+    //mw->setupDefaultMenus();
+    for (QMenu *qm : menus) {
+        mw->menuBar()->addMenu(qm);
+    }
+}
+
+void setActionChecked(const QWidget *mw, const std::string & userType, bool checked) {
+    // Iterate through actions in menus
+    for (const QMenu *qm : mw->findChildren<QMenu *>()) {
+        for (QAction *act : qm->actions()) {
+            if (act->text() == QString::fromStdString(userType)) {
+                act->setChecked(checked);
+            }
+        }
+    }
+}
+
+void fileSave(const Emdi & emdi, const QMainWindow *mw) {
+    // Use visitor pattern to save file
+    FileSaveVisitor fsv;
+    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
+    const QMdiSubWindow *sw = mdi->activeSubWindow();
+    emdi.document(sw)->accept(&fsv);
+}
+void fileSaveCopyAs(const Emdi & emdi, const QMainWindow *mw) {
+    // Use visitor pattern to save file
+    QString extension = ".SymLib"; // Todo: use visitor instead
+    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
+    const QMdiSubWindow *sw = mdi->activeSubWindow();
+    IDocument *doc = emdi.document(sw);
+
+    QString qfn = QFileDialog::getSaveFileName(nullptr, "", extension);
+    std::string filename = qfn.toStdString();
+    FileSaveCopyAsVisitor fsv(filename);
+    doc->accept(&fsv);
+    emdi.renameDocument(doc, filename);
+}
 
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     QWidget *w = new QWidget();
@@ -150,6 +205,8 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
 }
 
 dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
+    // Each entry in dispatch map is a lambda taking a QVariant
+    // Typically the QVariant arg is carried over by the action which got triggered
     dispatchMap_t dm;
     dm["actionNewSymbolLibrary"] = [&](const QVariant &){newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);};
     dm["actionNewFootprintLibrary"] = [&](const QVariant &){newDoc<FootprintLibDocument>("Main Editor", emdi, docVec);};
@@ -158,6 +215,7 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dm["actionOpen"] = [&](const QVariant &){};
     dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<QMainWindow *>());};
     dm["actionSaveAs"] = [&](const QVariant &){};
+    dm["actionSaveCopyAs"] = [&](const QVariant & v){fileSaveCopyAs(emdi, v.value<QMainWindow *>());};
     dm["actionCloseDoc"] = [&](const QVariant &){emdi.closeDocument();};
     dm["actionExit"] = [&](const QVariant &){quitSequence(emdi);};
     dm["actionViewProperties"] = [&](const QVariant & qv){
@@ -185,7 +243,6 @@ auto makeDispatch(const dispatchMap_t & dm) {
     };
 }
 
-
 auto mainCtor(const dispatchMap_t & dm) {
     return [&]() {
         MainWindow *mw = new MainWindow;
@@ -195,44 +252,6 @@ auto mainCtor(const dispatchMap_t & dm) {
     };
 }
 
-// TODO: Create something like defaultMenus()
-// TODO: and call this when doc is closed
-void updateMenus(const Emdi & emdi, const QMdiSubWindow *sw) {
-    // Use visitor pattern to get list of menus
-    // This is static so menus don't disappear.  This is tied
-    // in with the destructor deletions of menu pointers,
-    // but is bad practice probably.
-    static MenuDocVisitor mdv;
-    const IDocument *doc = emdi.document(sw);
-    doc->accept(&mdv);
-    const QList<QMenu *> & menus = mdv.menus();
-
-    MainWindow *mw = static_cast<MainWindow *>(sw->window());
-    //mw->menuBar()->clear();
-    //mw->setupDefaultMenus();
-    for (QMenu *qm : menus) {
-        mw->menuBar()->addMenu(qm);
-    }
-}
-
-void setActionChecked(const QWidget *mw, const std::string & userType, bool checked) {
-    // Iterate through actions in menus
-    for (const QMenu *qm : mw->findChildren<QMenu *>()) {
-        for (QAction *act : qm->actions()) {
-            if (act->text() == QString::fromStdString(userType)) {
-                act->setChecked(checked);
-            }
-        }
-    }
-}
-
-void fileSave(const Emdi & emdi, const QMainWindow *mw) {
-    // Use visitor pattern to save file
-    FileSaveVisitor fsv;
-    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
-    const QMdiSubWindow *sw = mdi->activeSubWindow();
-    emdi.document(sw)->accept(&fsv);
-}
 
 
 int main(int argc, char *argv[]) {
