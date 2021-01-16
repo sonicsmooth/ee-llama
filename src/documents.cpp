@@ -14,9 +14,10 @@
 
 SymbolLibDocument::SymbolLibDocument(const std::string & name) :
     m_name(name),
-    m_connName(dbutils::connName()),
+    m_connName(dbutils::connName("SLCONN")),
     m_activeState(false)
 {
+    qDebug() << m_connName.c_str();
 }
 SymbolLibDocument::~SymbolLibDocument() {
     done();
@@ -106,9 +107,10 @@ void SymbolLibDocument::saveCopyAs(const std::string & name) const {
 
 FootprintLibDocument::FootprintLibDocument(const std::string & name) :
     m_name(name),
-    m_connName(dbutils::connName()),
+    m_connName(dbutils::connName("FLCONN")),
     m_activeState(false)
 {
+    qDebug() << m_connName.c_str();
 }
 FootprintLibDocument::~FootprintLibDocument() {
     done();
@@ -167,9 +169,10 @@ void FootprintLibDocument::saveCopyAs(const std::string & name) const {
 
 SchDocument::SchDocument(const std::string & name) :
     m_name(name),
-    m_connName(dbutils::connName()),
+    m_connName(dbutils::connName("SCHCONN")),
     m_activeState(false)
 {
+    qDebug() << m_connName.c_str();
 }
 SchDocument::~SchDocument() {
     done();
@@ -231,9 +234,10 @@ void SchDocument::saveCopyAs(const std::string & name) const {
 
 PCBDocument::PCBDocument(const std::string & name) :
     m_name(name),
-    m_connName(dbutils::connName()),
+    m_connName(dbutils::connName("PCONN")),
     m_activeState(false)
 {
+    qDebug() << m_connName.c_str();
 }
 PCBDocument::~PCBDocument() {
     done();

@@ -82,11 +82,11 @@ void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     }
 }
 
-std::string connName() {
+std::string connName(const std::string & prefix) {
     // Returns sequential name incremented each time
     static int n = 0;
     std::stringstream oss;
-    oss << std::setw(9) << std::setfill('0') << n++;
+    oss << prefix << std::setw(3) << std::setfill('0') << n++;
     return oss.str();
 }
 

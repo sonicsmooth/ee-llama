@@ -119,18 +119,26 @@ void fileSave(const Emdi & emdi, const QMainWindow *mw) {
     const QMdiSubWindow *sw = mdi->activeSubWindow();
     emdi.document(sw)->accept(&fsv);
 }
+void fileSaveAs(const Emdi & emdi, const QMainWindow *mw) {
+    // Same as fileSaveCopyAs, but also renames loaded in-db document
+    QString extension = ".SymLib"; // Todo: use visitor instead
+    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
+    const QMdiSubWindow *sw = mdi->activeSubWindow();
+    IDocument *doc = emdi.document(sw);
+    std::string filename = QFileDialog::getSaveFileName(nullptr, "", extension).toStdString();
+    FileSaveCopyAsVisitor fsv(filename);
+    doc->accept(&fsv);
+    emdi.renameDocument(doc, filename);
+}
+
 void fileSaveCopyAs(const Emdi & emdi, const QMainWindow *mw) {
     // Use visitor pattern to save file
     QString extension = ".SymLib"; // Todo: use visitor instead
     const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
     const QMdiSubWindow *sw = mdi->activeSubWindow();
-    IDocument *doc = emdi.document(sw);
-
-    QString qfn = QFileDialog::getSaveFileName(nullptr, "", extension);
-    std::string filename = qfn.toStdString();
+    std::string filename = QFileDialog::getSaveFileName(nullptr, "", extension).toStdString();
     FileSaveCopyAsVisitor fsv(filename);
-    doc->accept(&fsv);
-    emdi.renameDocument(doc, filename);
+    emdi.document(sw)->accept(&fsv);
 }
 
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
@@ -214,7 +222,7 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dm["actionNewPCB"] = [&](const QVariant &){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](const QVariant &){};
     dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<QMainWindow *>());};
-    dm["actionSaveAs"] = [&](const QVariant &){};
+    dm["actionSaveAs"] = [&](const QVariant & v){fileSaveAs(emdi, v.value<QMainWindow *>());};
     dm["actionSaveCopyAs"] = [&](const QVariant & v){fileSaveCopyAs(emdi, v.value<QMainWindow *>());};
     dm["actionCloseDoc"] = [&](const QVariant &){emdi.closeDocument();};
     dm["actionExit"] = [&](const QVariant &){quitSequence(emdi);};
