@@ -32,13 +32,12 @@ void fatalStr(const QString & inftxt, int line) {
     throw(std::logic_error(inftxt.toLatin1()));
 }
 
-
 QString querr(const QString & comment, const QSqlQuery & query) {
     // Concatenates comment, last error, and query text with \n
     return QString("%1\n%2\n%3").
-                   arg(comment).
-                   arg(query.lastError().text()).
-                   arg(query.lastQuery());
+                   arg(comment,
+                       query.lastError().text(),
+                       query.lastQuery());
 }
 
 void executeList(QSqlQuery & query, const QStringList & qsl, const QString & errstr, int linenum) {
