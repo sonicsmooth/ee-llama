@@ -95,11 +95,6 @@ void SymbolLibDocument::save() const {
     // Saves the document using connName
     dbutils::dbSaveFromTo(m_connName, m_name);
 }
-//void SymbolLibDocument::saveAs(const std::string & name) {
-//    // Changes name of document as well as saving a copy
-//    m_name = name;
-//    dbutils::dbSaveFromTo(m_connName, name);
-//}
 void SymbolLibDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
     dbutils::dbSaveFromTo(m_connName, name);
