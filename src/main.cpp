@@ -35,6 +35,14 @@
 #include <string>
 #include <sstream>
 
+// TODO: multi-thread load and save
+// TODO: QML
+// TODO: TCL, ECL, Lua
+// TODO: menus
+// TODO: move sqlite to repo
+//
+
+
 
 using docVec_t = std::list<std::unique_ptr<IDocument> >;
 using dispatchMap_t = std::map<QString, std::function<void(const QVariant &)>>;
