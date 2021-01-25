@@ -1,19 +1,28 @@
 
 #include "dbutils.h"
-#include "include/sqlite3/sqlite3.h"
+#include "sqlite3/sqlite3.h"
+#include "numberemitter.h"
 
+#include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
+#include <QRunnable>
 #include <QString>
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QThread>
+#include <QThreadPool>
 #include <QVariant>
 
-#include <stdexcept>
+#include <chrono>
+#include <future>
+#include <functional>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
+#include <thread>
 
 // This is largely/mostly a copy of what's in emdilib.cpp.
 
@@ -45,9 +54,31 @@ void executeList(QSqlQuery & query, const QStringList & qsl, const QString & err
         if (!query.exec(qs))
             fatalStr(querr(errstr, query), linenum);
 }
-void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
+
+// Available to other modules as global
+NumberEmitter numberEmitter;
+static void _dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     // Uses sqlite3 backup mechanism to write database connFrom to fileTo
-    QSqlDatabase db = QSqlDatabase::database(QString::fromStdString(connFrom));
+
+    auto secs = std::chrono::seconds(1);
+    for (int i = 0; i < 5; i++) {
+        qDebug() << "in loop";
+        std::this_thread::sleep_for(secs);
+        double fragment = 1.0 / 5;
+        try {
+            emit numberEmitter.emitDouble(fragment * i);
+        }
+        catch (...) {
+            qDebug() << "error caught";
+            // TODO: do something here?
+        }
+    }
+
+    QString qsConnFrom = QString::fromStdString(connFrom);
+    // Need to clone db so it can be used from this function, which is callable
+    // as another thread
+    QSqlDatabase db = QSqlDatabase::cloneDatabase(qsConnFrom, "CloneDb");
+    db.open();
     QVariant qvhandle = db.driver()->handle();
     if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
         sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
@@ -79,6 +110,32 @@ void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     } else {
         throw std::logic_error("invalid driver handle");
     }
+    numberEmitter.disconnect();
+}
+
+class SaveRunnable : public QRunnable {
+private:
+    const std::string m_connFrom;
+    const std::string m_fileTo;
+public:
+    SaveRunnable(const std::string & connFrom, const std::string & fileTo) :
+        m_connFrom(connFrom),
+        m_fileTo(fileTo){}
+    void run() override {
+        qDebug() << "Running from other thread.run()";
+        _dbSaveFromTo(m_connFrom, m_fileTo);
+    }
+};
+
+void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
+    // Forward call to potentially long-running function
+    // Can't let future be desroyed at end of function, so we assign it to a static global
+    //saveFuture = std::async(std::launch::async, _dbSaveFromTo, connFrom, fileTo);
+    //std::thread(_dbSaveFromTo, connFrom, fileTo).detach();
+    //QThread::create(_dbSaveFromTo, connFrom, fileTo)->start(); // ~equivalent
+    SaveRunnable *sr = new SaveRunnable(connFrom, fileTo);
+    // TODO: skip making a class and its instance and use lambda instead
+    QThreadPool::globalInstance()->start(sr);
 }
 
 std::string connName(const std::string & prefix) {

@@ -1,11 +1,17 @@
 #ifndef DBUTILS_H
 #define DBUTILS_H
 
+#include "numberemitter.h"
+
+#include <QMainWindow>
 #include <QString>
 #include <QSqlQuery>
+
 #include <string>
 
 namespace dbutils {
+
+extern NumberEmitter numberEmitter;
 
 [[noreturn]] void fatalStr(const QString & inftxt, int line);
 QString querr(const QString & comment, const QSqlQuery & query);

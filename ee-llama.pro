@@ -11,25 +11,26 @@ CONFIG += c++17
 SOURCES += \
     src/dbutils.cpp \
     src/extensiondocvisitor.cpp \
-    src/filesaveasvisitor.cpp \
     src/filesavecopyasvisitor.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
     src/documents.cpp \
     src/menudocvisitor.cpp \
     src/filesavevisitor.cpp \
+    src/numberemitter.cpp
 
 HEADERS += \
     include/dbutils.h \
     include/extensiondocvisitor.h \
-    include/filesaveasvisitor.h \
     include/filesavecopyasvisitor.h \
     include/idocvisitor.h \
     include/mainwindow.h \
     include/documents.h \
     include/menudocvisitor.h \
     include/filesavevisitor.h \
+    include/numberemitter.h \
     $$PWD/sqlite3/sqlite3.h
+
 
 
 INCLUDEPATH += \
