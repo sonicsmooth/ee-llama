@@ -3,6 +3,7 @@
 
 #include "idocument.h"
 #include "idocvisitor.h"
+#include "numberemitter.h"
 #include <string>
 
 

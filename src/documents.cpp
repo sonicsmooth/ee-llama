@@ -152,11 +152,7 @@ void FootprintLibDocument::save() const {
     // Saves the document using connName
     dbutils::dbSaveFromTo(m_connName, m_name);
 }
-//void FootprintLibDocument::saveAs(const std::string & name) {
-//    // Changes name of document as well as saving a copy
-//    m_name = name;
-//    dbutils::dbSaveFromTo(m_connName, name);
-//}
+
 void FootprintLibDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
     dbutils::dbSaveFromTo(m_connName, name);
@@ -216,11 +212,6 @@ void SchDocument::save() const {
     // Saves the document using connName
     dbutils::dbSaveFromTo(m_connName, m_name);
 }
-//void SchDocument::saveAs(const std::string & name) {
-//    // Changes name of document as well as saving a copy
-//    m_name = name;
-//    dbutils::dbSaveFromTo(m_connName, name);
-//}
 void SchDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
     dbutils::dbSaveFromTo(m_connName, name);
@@ -280,11 +271,6 @@ void PCBDocument::save() const {
     // Saves the document using connName
     dbutils::dbSaveFromTo(m_connName, m_name);
 }
-//void PCBDocument::saveAs(const std::string & name) {
-//    // Changes name of document as well as saving a copy
-//    m_name = name;
-//    dbutils::dbSaveFromTo(m_connName, name);
-//}
 void PCBDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
     dbutils::dbSaveFromTo(m_connName, name);

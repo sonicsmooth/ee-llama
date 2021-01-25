@@ -25,6 +25,8 @@ private:
     Ui::MainWindow *ui;
 signals:
     void actionTriggered(QAction *, const QVariant &);
+public slots:
+    void chunkSaved(double);
 
 };
 #endif // MAINWINDOW_H

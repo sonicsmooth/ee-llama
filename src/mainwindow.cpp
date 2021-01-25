@@ -68,3 +68,6 @@ MainWindow::~MainWindow()
 void MainWindow::setupDefaultMenus() {
     ui->setupUi(this);
 }
+void MainWindow::chunkSaved(double) {
+    qDebug() << "Saving chunk!";
+}

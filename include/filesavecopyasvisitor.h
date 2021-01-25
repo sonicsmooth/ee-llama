@@ -10,6 +10,7 @@ class FileSaveCopyAsVisitor : public IDocVisitor
 {
 private:
     const std::string m_newName;
+    const void *m_context;
 public:
     FileSaveCopyAsVisitor(const std::string &);
     void visit(const SymbolLibDocument *) override {}

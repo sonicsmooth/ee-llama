@@ -1,10 +1,11 @@
 //#include "vld.h"
 #include "mainwindow.h"
+#include "dbutils.h"
 #include "emdilib.h"
 #include "documents.h"
 #include "menudocvisitor.h"
+#include "numberemitter.h"
 #include "filesavevisitor.h"
-#include "filesaveasvisitor.h"
 #include "filesavecopyasvisitor.h"
 #include "extensiondocvisitor.h"
 
@@ -20,9 +21,11 @@
 #include <QMessageBox>
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QObject>
 #include <QPushButton>
 #include <QString>
 #include <QTextEdit>
+#include <QThreadPool>
 #include <QVariant>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -39,8 +42,6 @@
 // TODO: QML
 // TODO: TCL, ECL, Lua
 // TODO: menus
-// TODO: move sqlite to repo
-//
 
 
 
@@ -122,15 +123,7 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
         }
     }
 }
-
-void fileSave(const Emdi & emdi, const QMainWindow *mw) {
-    // Use visitor pattern to save file
-    FileSaveVisitor fsv;
-    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
-    const QMdiSubWindow *sw = mdi->activeSubWindow();
-    emdi.document(sw)->accept(&fsv);
-}
-auto fileSaveParams(const Emdi & emdi, const QMainWindow *mw) {
+auto fileSaveParams(const Emdi & emdi, const MainWindow *mw) {
     // Collect doc and new filename
     const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
     const QMdiSubWindow *sw = mdi->activeSubWindow();
@@ -145,21 +138,40 @@ auto fileSaveParams(const Emdi & emdi, const QMainWindow *mw) {
     } retval {doc, filename};
     return retval;
 }
-void fileSaveAs(const Emdi & emdi, const QMainWindow *mw) {
+void fileSave(const Emdi & emdi, const MainWindow *mw) {
+    // Use visitor pattern to save file
+    FileSaveVisitor fsv;
+    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
+    const QMdiSubWindow *sw = mdi->activeSubWindow();
+    NumberEmitter &ne = dbutils::numberEmitter;
+    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
+    emdi.document(sw)->accept(&fsv);
+    //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
+
+}
+void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
     // Collect parameters, then save and rename
     auto [doc, filename] = fileSaveParams(emdi, mw);
     if (filename.empty())
         return;
+
+    NumberEmitter &ne = dbutils::numberEmitter;
     FileSaveCopyAsVisitor fsv(filename);
+    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     doc->accept(&fsv);
+    //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     emdi.renameDocument(doc, filename);
 }
-void fileSaveCopyAs(const Emdi & emdi, const QMainWindow *mw) {
+void fileSaveCopyAs(const Emdi & emdi, const MainWindow *mw) {
     // Collect parameters, then save.  Same as fileSaveAs, except without the rename
     auto [doc, filename] = fileSaveParams(emdi, mw);
     if (filename.empty())
         return;
+
+    NumberEmitter &ne = dbutils::numberEmitter;
+    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     FileSaveCopyAsVisitor fsv(filename);
+    //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     doc->accept(&fsv);
 }
 
@@ -243,9 +255,9 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dm["actionNewSchematic"] = [&](const QVariant &){newDoc<SchDocument>("Main Editor", emdi, docVec);};
     dm["actionNewPCB"] = [&](const QVariant &){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](const QVariant &){};
-    dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<QMainWindow *>());};
-    dm["actionSaveAs"] = [&](const QVariant & v){fileSaveAs(emdi, v.value<QMainWindow *>());};
-    dm["actionSaveCopyAs"] = [&](const QVariant & v){fileSaveCopyAs(emdi, v.value<QMainWindow *>());};
+    dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<MainWindow *>());};
+    dm["actionSaveAs"] = [&](const QVariant & v){fileSaveAs(emdi, v.value<MainWindow *>());};
+    dm["actionSaveCopyAs"] = [&](const QVariant & v){fileSaveCopyAs(emdi, v.value<MainWindow *>());};
     dm["actionCloseDoc"] = [&](const QVariant &){emdi.closeDocument();};
     dm["actionExit"] = [&](const QVariant &){quitSequence(emdi);};
     dm["actionViewProperties"] = [&](const QVariant & qv){
@@ -316,6 +328,8 @@ int main(int argc, char *argv[]) {
     a.exec();
 
     //delete buttWindow;
+    bool dones = QThreadPool::globalInstance()->waitForDone(15000);
+    qDebug() << "All threads done?" << dones;
     qDebug("Done");
 
 }
