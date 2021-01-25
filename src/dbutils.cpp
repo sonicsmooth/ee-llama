@@ -32,13 +32,12 @@ void fatalStr(const QString & inftxt, int line) {
     throw(std::logic_error(inftxt.toLatin1()));
 }
 
-
 QString querr(const QString & comment, const QSqlQuery & query) {
     // Concatenates comment, last error, and query text with \n
     return QString("%1\n%2\n%3").
-                   arg(comment).
-                   arg(query.lastError().text()).
-                   arg(query.lastQuery());
+                   arg(comment,
+                       query.lastError().text(),
+                       query.lastQuery());
 }
 
 void executeList(QSqlQuery & query, const QStringList & qsl, const QString & errstr, int linenum) {
@@ -82,11 +81,11 @@ void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     }
 }
 
-std::string connName() {
+std::string connName(const std::string & prefix) {
     // Returns sequential name incremented each time
     static int n = 0;
     std::stringstream oss;
-    oss << std::setw(9) << std::setfill('0') << n++;
+    oss << prefix << std::setw(3) << std::setfill('0') << n++;
     return oss.str();
 }
 

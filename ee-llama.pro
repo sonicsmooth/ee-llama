@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     src/dbutils.cpp \
+    src/extensiondocvisitor.cpp \
     src/filesaveasvisitor.cpp \
     src/filesavecopyasvisitor.cpp \
     src/main.cpp \
@@ -17,10 +18,10 @@ SOURCES += \
     src/documents.cpp \
     src/menudocvisitor.cpp \
     src/filesavevisitor.cpp \
-    src/sqlite3/sqlite3.c
 
 HEADERS += \
     include/dbutils.h \
+    include/extensiondocvisitor.h \
     include/filesaveasvisitor.h \
     include/filesavecopyasvisitor.h \
     include/idocvisitor.h \
@@ -28,13 +29,15 @@ HEADERS += \
     include/documents.h \
     include/menudocvisitor.h \
     include/filesavevisitor.h \
-    include/sqlite3/sqlite3.h
+    $$PWD/sqlite3/sqlite3.h
+
 
 
 INCLUDEPATH += \
     include \
     emdi/emdilib/include \
     'C:/Program Files (x86)/Visual Leak Detector/include' \
+    sqlite3
 
 FORMS += \
     ui/mainwindow.ui
@@ -56,22 +59,24 @@ BUILDNAME = build-qtemdilib-Desktop_Qt_5_15_2_MSVC2019_64bit
 
 CONFIG(debug, debug|release) {
     LIBS += -L$$PWD/emdi/emdilib/$$BUILDNAME-Debug/debug/ -lemdilib
-    LIBS += -L"c:/qt/5.15.2/msvc2019_64/plugins/sqldrivers/qsqlite.dll"
     LIBS += -L$$PWD/'../../Program Files (x86)/Visual Leak Detector/lib/Win64/' -lvld
+    LIBS += -L$$PWD/sqlite3/ -lsqlite3
     PRE_TARGETDEPS += $$PWD/emdi/emdilib/$$BUILDNAME-Debug/debug/emdilib.lib
     PRE_TARGETDEPS += 'c:/Program Files (x86)/Visual Leak Detector/lib/Win64/vld.lib'
+    PRE_TARGETDEPS += $$PWD/sqlite3/sqlite3.lib
     ee-llama.depends = emdilib
 }
 
 CONFIG(release, debug|release) {
     LIBS += -L$$PWD/emdi/emdilib/$$BUILDNAME-Release/release/ -lemdilib
-    LIBS += -L"c:/qt/5.15.2/msvc2019_64/plugins/sqldrivers/qsqlite.dll"
     PRE_TARGETDEPS += $$PWD/emdi/emdilib/$$BUILDNAME-Release/release/emdilib.lib
+    PRE_TARGETDEPS += $$PWD/sqlite3/sqlite3.lib
     ee-llama.depends = emdilib
 }
 
 
 DEPENDPATH += 'c:/Program Files (x86)/Visual Leak Detector/include'
+DEPENDPATH += $$PWD/sqlite3
 
 RESOURCES += \
     llamasource.qrc

@@ -6,6 +6,7 @@
 #include "filesavevisitor.h"
 #include "filesaveasvisitor.h"
 #include "filesavecopyasvisitor.h"
+#include "extensiondocvisitor.h"
 
 #include <QAction>
 #include <QApplication>
@@ -34,6 +35,14 @@
 #include <string>
 #include <sstream>
 
+// TODO: multi-thread load and save
+// TODO: QML
+// TODO: TCL, ECL, Lua
+// TODO: menus
+// TODO: move sqlite to repo
+//
+
+
 
 using docVec_t = std::list<std::unique_ptr<IDocument> >;
 using dispatchMap_t = std::map<QString, std::function<void(const QVariant &)>>;
@@ -46,6 +55,8 @@ auto mainCtor(const dispatchMap_t &);
 void updateMenus(const Emdi &, const QMdiSubWindow *);
 void setActionChecked(const QWidget *, const std::string & act, bool checked);
 void fileSave(const Emdi &, const QMainWindow *);
+auto fileSaveParams(const Emdi &, const QMainWindow *);
+void fileSaveAs(const Emdi &, const QMainWindow *);
 void fileSaveCopyAs(const Emdi &, const QMainWindow *);
 
 template <typename T> std::string docString() {return "undefined";}
@@ -119,18 +130,37 @@ void fileSave(const Emdi & emdi, const QMainWindow *mw) {
     const QMdiSubWindow *sw = mdi->activeSubWindow();
     emdi.document(sw)->accept(&fsv);
 }
-void fileSaveCopyAs(const Emdi & emdi, const QMainWindow *mw) {
-    // Use visitor pattern to save file
-    QString extension = ".SymLib"; // Todo: use visitor instead
+auto fileSaveParams(const Emdi & emdi, const QMainWindow *mw) {
+    // Collect doc and new filename
     const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
     const QMdiSubWindow *sw = mdi->activeSubWindow();
     IDocument *doc = emdi.document(sw);
-
-    QString qfn = QFileDialog::getSaveFileName(nullptr, "", extension);
-    std::string filename = qfn.toStdString();
+    ExtensionDocVisitor extvisitor;
+    doc->accept(&extvisitor);
+    QString extension = QString::fromStdString(extvisitor.extension());
+    std::string filename = QFileDialog::getSaveFileName(nullptr, "", extension).toStdString();
+    struct {
+        IDocument *doc;
+        std::string filename;
+    } retval {doc, filename};
+    return retval;
+}
+void fileSaveAs(const Emdi & emdi, const QMainWindow *mw) {
+    // Collect parameters, then save and rename
+    auto [doc, filename] = fileSaveParams(emdi, mw);
+    if (filename.empty())
+        return;
     FileSaveCopyAsVisitor fsv(filename);
     doc->accept(&fsv);
     emdi.renameDocument(doc, filename);
+}
+void fileSaveCopyAs(const Emdi & emdi, const QMainWindow *mw) {
+    // Collect parameters, then save.  Same as fileSaveAs, except without the rename
+    auto [doc, filename] = fileSaveParams(emdi, mw);
+    if (filename.empty())
+        return;
+    FileSaveCopyAsVisitor fsv(filename);
+    doc->accept(&fsv);
 }
 
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
@@ -214,7 +244,7 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dm["actionNewPCB"] = [&](const QVariant &){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](const QVariant &){};
     dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<QMainWindow *>());};
-    dm["actionSaveAs"] = [&](const QVariant &){};
+    dm["actionSaveAs"] = [&](const QVariant & v){fileSaveAs(emdi, v.value<QMainWindow *>());};
     dm["actionSaveCopyAs"] = [&](const QVariant & v){fileSaveCopyAs(emdi, v.value<QMainWindow *>());};
     dm["actionCloseDoc"] = [&](const QVariant &){emdi.closeDocument();};
     dm["actionExit"] = [&](const QVariant &){quitSequence(emdi);};
