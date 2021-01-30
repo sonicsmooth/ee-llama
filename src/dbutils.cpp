@@ -62,11 +62,11 @@ static void _dbSaveFromTo(const std::string & connFrom, const std::string & file
 
     auto secs = std::chrono::seconds(1);
     for (int i = 0; i < 5; i++) {
-        qDebug() << "in loop";
         std::this_thread::sleep_for(secs);
         double fragment = 1.0 / 5;
         try {
             emit numberEmitter.emitDouble(fragment * i);
+            emit numberEmitter.emitInt(i);
         }
         catch (...) {
             qDebug() << "error caught";
@@ -110,32 +110,27 @@ static void _dbSaveFromTo(const std::string & connFrom, const std::string & file
     } else {
         throw std::logic_error("invalid driver handle");
     }
-    numberEmitter.disconnect();
+    //numberEmitter.disconnect();
 }
 
-class SaveRunnable : public QRunnable {
-private:
-    const std::string m_connFrom;
-    const std::string m_fileTo;
-public:
-    SaveRunnable(const std::string & connFrom, const std::string & fileTo) :
-        m_connFrom(connFrom),
-        m_fileTo(fileTo){}
-    void run() override {
-        qDebug() << "Running from other thread.run()";
-        _dbSaveFromTo(m_connFrom, m_fileTo);
-    }
-};
+//class SaveRunnable : public QRunnable {
+//private:
+//    const std::string m_connFrom;
+//    const std::string m_fileTo;
+//public:
+//    SaveRunnable(const std::string & connFrom, const std::string & fileTo) :
+//        m_connFrom(connFrom),
+//        m_fileTo(fileTo){}
+//    void run() override {
+//        qDebug() << "Running from other thread.run()";
+//        _dbSaveFromTo(m_connFrom, m_fileTo);
+//    }
+//};
 
 void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     // Forward call to potentially long-running function
     // Can't let future be desroyed at end of function, so we assign it to a static global
-    //saveFuture = std::async(std::launch::async, _dbSaveFromTo, connFrom, fileTo);
-    //std::thread(_dbSaveFromTo, connFrom, fileTo).detach();
-    //QThread::create(_dbSaveFromTo, connFrom, fileTo)->start(); // ~equivalent
-    SaveRunnable *sr = new SaveRunnable(connFrom, fileTo);
-    // TODO: skip making a class and its instance and use lambda instead
-    QThreadPool::globalInstance()->start(sr);
+    _dbSaveFromTo(connFrom, fileTo);
 }
 
 std::string connName(const std::string & prefix) {

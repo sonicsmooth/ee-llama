@@ -1,9 +1,11 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <dbutils.h>
 
 #include <QAction>
 #include <QDebug>
-
+#include <QDialog>
+#include <QProgressDialog>
 #include <vector>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -70,4 +72,26 @@ void MainWindow::setupDefaultMenus() {
 }
 void MainWindow::chunkSaved(double) {
     qDebug() << "Saving chunk!";
+}
+void MainWindow::addFuture(QFuture<void> f) {
+    m_futures.push_back(f);
+}
+void MainWindow::removeFuture(QFuture<void> f){
+    m_futures.remove(f);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    // Wait until all futures done
+    for (auto f : m_futures) {
+        QProgressDialog *qp = new QProgressDialog(this);
+        qp->setMinimum(0);
+        qp->setMaximum(5);
+        qp->setValue(0);
+        QObject::connect(&dbutils::numberEmitter, &NumberEmitter::emitInt,
+                         [qp](int x){qp->setValue(x);});
+        qp->show();
+        QApplication::processEvents();
+        f.waitForFinished();
+        }
+    event->accept();
 }

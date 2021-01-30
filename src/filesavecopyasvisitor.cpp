@@ -18,4 +18,16 @@ void FileSaveCopyAsVisitor::visit(SchDocument *doc) {
 void FileSaveCopyAsVisitor::visit(PCBDocument *doc) {
     doc->saveCopyAs(m_newName);
 }
+void FileSaveCopyAsVisitor::visit(SymbolLibDocument *doc) const {
+    doc->saveCopyAs(m_newName);
+}
+void FileSaveCopyAsVisitor::visit(FootprintLibDocument *doc) const {
+    doc->saveCopyAs(m_newName);
+}
+void FileSaveCopyAsVisitor::visit(SchDocument *doc) const {
+    doc->saveCopyAs(m_newName);
+}
+void FileSaveCopyAsVisitor::visit(PCBDocument *doc) const {
+    doc->saveCopyAs(m_newName);
+}
 

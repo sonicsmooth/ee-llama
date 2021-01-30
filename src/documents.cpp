@@ -88,12 +88,19 @@ void SymbolLibDocument::accept(IDocVisitor *dv) {
 void SymbolLibDocument::accept(IDocVisitor *dv) const {
     return dv->visit(this);
 }
+void SymbolLibDocument::accept(const IDocVisitor *dv) {
+    return dv->visit(this);
+}
+void SymbolLibDocument::accept(const IDocVisitor *dv) const {
+    return dv->visit(this);
+}
 void SymbolLibDocument::setName(const std::string & newName) {
     m_name = newName;
 }
 void SymbolLibDocument::save() const {
     // Saves the document using connName
     dbutils::dbSaveFromTo(m_connName, m_name);
+    // todo: dirty bit
 }
 void SymbolLibDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
@@ -142,7 +149,13 @@ const std::string & FootprintLibDocument::name() const {
 void FootprintLibDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
+void FootprintLibDocument::accept(const IDocVisitor *dv) {
+    return dv->visit(this);
+}
 void FootprintLibDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void FootprintLibDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
 }
 void FootprintLibDocument::setName(const std::string & newName) {
@@ -202,7 +215,13 @@ const std::string & SchDocument::name() const {
 void SchDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
+void SchDocument::accept(const IDocVisitor *dv) {
+    return dv->visit(this);
+}
 void SchDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void SchDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
 }
 void SchDocument::setName(const std::string & newName) {
@@ -261,7 +280,13 @@ const std::string & PCBDocument::name() const {
 void PCBDocument::accept(IDocVisitor *dv) {
     return dv->visit(this);
 }
+void PCBDocument::accept(const IDocVisitor *dv) {
+    return dv->visit(this);
+}
 void PCBDocument::accept(IDocVisitor *dv) const {
+    return dv->visit(this);
+}
+void PCBDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
 }
 void PCBDocument::setName(const std::string & newName) {

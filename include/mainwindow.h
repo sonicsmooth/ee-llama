@@ -2,7 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QAction>
+#include <QCloseEvent>
 #include <QDebug>
+#include <QFuture>
 #include <QMainWindow>
 #include <QMenu>
 #include <QVariant>
@@ -20,9 +22,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
     void setupDefaultMenus();
+    void closeEvent(QCloseEvent *) override;
+    void addFuture(QFuture<void>);
+    void removeFuture(QFuture<void>);
 
 private:
     Ui::MainWindow *ui;
+    std::list<QFuture<void>> m_futures;
 signals:
     void actionTriggered(QAction *, const QVariant &);
 public slots:

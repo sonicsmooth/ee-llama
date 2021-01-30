@@ -24,7 +24,9 @@ public:
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
+    void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
+    void accept(const IDocVisitor *) const override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -45,7 +47,9 @@ public:
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
+    void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
+    void accept(const IDocVisitor *) const override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -66,7 +70,9 @@ public:
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
+    void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
+    void accept(const IDocVisitor *) const override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -87,7 +93,9 @@ public:
     QWidget *newView(const std::string &) const override;
     const std::string & name() const override;
     void accept(IDocVisitor *) override;
+    void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
+    void accept(const IDocVisitor *) const override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc

@@ -59,7 +59,7 @@ BUILDNAME = build-qtemdilib-Desktop_Qt_5_15_2_MSVC2019_64bit
 
 CONFIG(debug, debug|release) {
     LIBS += -L$$PWD/emdi/emdilib/$$BUILDNAME-Debug/debug/ -lemdilib
-    LIBS += -L$$PWD/'../../Program Files (x86)/Visual Leak Detector/lib/Win64/' -lvld
+    LIBS += -L'c:/Program Files (x86)/Visual Leak Detector/lib/Win64/' -lvld
     LIBS += -L$$PWD/sqlite3/ -lsqlite3
     PRE_TARGETDEPS += $$PWD/emdi/emdilib/$$BUILDNAME-Debug/debug/emdilib.lib
     PRE_TARGETDEPS += 'c:/Program Files (x86)/Visual Leak Detector/lib/Win64/vld.lib'
@@ -68,7 +68,8 @@ CONFIG(debug, debug|release) {
 }
 
 CONFIG(release, debug|release) {
-    LIBS += -L$$PWD/emdi/emdilib/$$BUILDNAME-Release/release/ -lemdilib
+    LIBS           += -L$$PWD/emdi/emdilib/$$BUILDNAME-Release/release/ -lemdilib
+    LIBS           += -L$$PWD/sqlite3/ -lsqlite3
     PRE_TARGETDEPS += $$PWD/emdi/emdilib/$$BUILDNAME-Release/release/emdilib.lib
     PRE_TARGETDEPS += $$PWD/sqlite3/sqlite3.lib
     ee-llama.depends = emdilib

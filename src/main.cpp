@@ -11,7 +11,10 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QtConcurrent/QtConcurrent>
 #include <QDebug>
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -138,16 +141,27 @@ auto fileSaveParams(const Emdi & emdi, const MainWindow *mw) {
     } retval {doc, filename};
     return retval;
 }
-void fileSave(const Emdi & emdi, const MainWindow *mw) {
+void fileSave(const Emdi & emdi, MainWindow *mw) {
     // Use visitor pattern to save file
     FileSaveVisitor fsv;
     const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
     const QMdiSubWindow *sw = mdi->activeSubWindow();
+    if (!sw) return;
+
+    // Access global numberEmitter in dbutils and connect it to progress slot
     NumberEmitter &ne = dbutils::numberEmitter;
     QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
-    emdi.document(sw)->accept(&fsv);
-    //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
+    // Signal is disconnected at end of _dbSaveFromTo
+    // Otherwise if we do it at the end here, the signal is disconnected before
+    // thread is finished.
 
+    IDocument *doc = emdi.document(sw);
+    QFuture<void> f = QtConcurrent::run([doc,fsv]{
+        doc->accept(&fsv);
+    });
+
+    // Keep this around so we can wait for results
+    mw->addFuture(f);
 }
 void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
     // Collect parameters, then save and rename
@@ -328,8 +342,8 @@ int main(int argc, char *argv[]) {
     a.exec();
 
     //delete buttWindow;
-    bool dones = QThreadPool::globalInstance()->waitForDone(15000);
-    qDebug() << "All threads done?" << dones;
+    //bool dones = QThreadPool::globalInstance()->waitForDone(15000);
+    //qDebug() << "All threads done?" << dones;
     qDebug("Done");
 
 }
