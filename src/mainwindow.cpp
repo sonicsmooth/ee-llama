@@ -73,25 +73,26 @@ void MainWindow::setupDefaultMenus() {
 void MainWindow::chunkSaved(double) {
     qDebug() << "Saving chunk!";
 }
-void MainWindow::addFuture(QFuture<void> f) {
-    m_futures.push_back(f);
+void MainWindow::addThread(QThread *thread) {
+    auto p = std::unique_ptr<QThread>(thread);
+    m_threads.push_back(std::move(p));
 }
-void MainWindow::removeFuture(QFuture<void> f){
-    m_futures.remove(f);
+void MainWindow::removeThread(QThread *thread) {
+    m_threads.remove(std::unique_ptr<QThread>(thread));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     // Wait until all futures done
-    for (auto f : m_futures) {
-        QProgressDialog *qp = new QProgressDialog(this);
-        qp->setMinimum(0);
-        qp->setMaximum(5);
-        qp->setValue(0);
-        QObject::connect(&dbutils::numberEmitter, &NumberEmitter::emitInt,
-                         [qp](int x){qp->setValue(x);});
-        qp->show();
-        QApplication::processEvents();
-        f.waitForFinished();
-        }
+//    for (auto f : m_futures) {
+//        QProgressDialog *qp = new QProgressDialog(this);
+//        qp->setMinimum(0);
+//        qp->setMaximum(5);
+//        qp->setValue(0);
+//        QObject::connect(&dbutils::numberEmitter, &NumberEmitter::emitInt,
+//                         [qp](int x){qp->setValue(x);});
+//        qp->show();
+//        QApplication::processEvents();
+//        f.waitForFinished();
+//        }
     event->accept();
 }

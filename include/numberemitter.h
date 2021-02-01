@@ -3,7 +3,6 @@
 
 #include <QObject>
 
-
 class NumberEmitter : public QObject {
     Q_OBJECT
 signals:

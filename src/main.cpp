@@ -8,13 +8,11 @@
 #include "filesavevisitor.h"
 #include "filesavecopyasvisitor.h"
 #include "extensiondocvisitor.h"
+#include "task.h"
 
 #include <QAction>
 #include <QApplication>
-#include <QtConcurrent/QtConcurrent>
 #include <QDebug>
-#include <QFuture>
-#include <QFutureWatcher>
 #include <QDockWidget>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -25,9 +23,12 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QObject>
+#include <QProgressBar>
 #include <QPushButton>
+#include <QStatusBar>
 #include <QString>
 #include <QTextEdit>
+#include <QThread>
 #include <QThreadPool>
 #include <QVariant>
 #include <QVBoxLayout>
@@ -48,7 +49,7 @@
 
 
 
-using docVec_t = std::list<std::unique_ptr<IDocument> >;
+using docVec_t = std::list<std::unique_ptr<IDocument>>;
 using dispatchMap_t = std::map<QString, std::function<void(const QVariant &)>>;
 
 void quitSequence(Emdi &);
@@ -148,20 +149,43 @@ void fileSave(const Emdi & emdi, MainWindow *mw) {
     const QMdiSubWindow *sw = mdi->activeSubWindow();
     if (!sw) return;
 
+    // Create status bar
+    auto sbfn
+    static const int qpmax = 10;
+    auto qp = new QProgressBar(mw);
+    auto sb = mw->statusBar();
+    sb->addWidget(qp);
+    qp->setMinimum(0);
+    qp->setMaximum(qpmax);
+    qp->setValue(0);
+
+
     // Access global numberEmitter in dbutils and connect it to progress slot
-    NumberEmitter &ne = dbutils::numberEmitter;
-    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
-    // Signal is disconnected at end of _dbSaveFromTo
-    // Otherwise if we do it at the end here, the signal is disconnected before
-    // thread is finished.
+    NumberEmitter *pne = &dbutils::numberEmitter;
+    //QObject::connect(pne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved, Qt::QueuedConnection);
+    QObject::connect(pne, &NumberEmitter::emitInt, qp, &QProgressBar::setValue, Qt::QueuedConnection);
 
     IDocument *doc = emdi.document(sw);
-    QFuture<void> f = QtConcurrent::run([doc,fsv]{
+    auto fn = [doc,fsv,pne,qp] {
+        qDebug() << "Lambda thread:" << QThread::currentThread();
         doc->accept(&fsv);
+        //QObject::disconnect(pne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
+        QObject::disconnect(pne, &NumberEmitter::emitInt, qp, &QProgressBar::setValue);
+//        mw->statusBar()->removeWidget(qp);
+    };
+    //auto thread = QThread::create(fn);
+    auto task = new Task(mw, fn);
+    QObject::connect(task, &QThread::finished, [mw, qp]() {
+        qDebug() << "Finished!!";
+        mw->statusBar()->removeWidget(qp);
     });
+    QObject::connect(task, &QThread::finished, &QThread::deleteLater);
+    task->start();
 
     // Keep this around so we can wait for results
-    mw->addFuture(f);
+    //mw->addThread(thread);
+    //qDebug() << "Starting thread:" << QThread::currentThread();
+    //thread->start();
 }
 void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
     // Collect parameters, then save and rename
@@ -331,19 +355,28 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(&emdi, &Emdi::docClosed,
         [&docVec](void *p) {
-            docVec.remove_if([&](const std::unique_ptr<IDocument> & up) {
-                return up.get() == static_cast<IDocument *>(p);});});
+            IDocument *dp = static_cast<IDocument *>(p);
+            docVec.remove(std::unique_ptr<IDocument>(dp));});
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
     // Main window and external toolbar
-    emdi.newMainWindow();
-    //QWidget *buttWindow = buttonWindow(emdi, docVec);
-    //buttWindow->show();
-    a.exec();
+    auto mw = emdi.newMainWindow();
 
-    //delete buttWindow;
-    //bool dones = QThreadPool::globalInstance()->waitForDone(15000);
-    //qDebug() << "All threads done?" << dones;
+
+//    auto qth =
+//    QThread::create([qp](){
+//        NumberEmitter ne;
+//        QObject::connect(&ne, &NumberEmitter::emitInt,
+//                         qp, &QProgressBar::setValue);
+//        for(int i=0; i<qpmax+1; i++) {
+//            auto msecs = std::chrono::milliseconds(10);
+//            std::this_thread::sleep_for(msecs);
+//            emit ne.emitInt(i);
+//        }});
+//    qth->start();
+
+    a.exec();
+//    qth->wait();
     qDebug("Done");
 
 }

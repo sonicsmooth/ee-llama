@@ -17,7 +17,8 @@ SOURCES += \
     src/documents.cpp \
     src/menudocvisitor.cpp \
     src/filesavevisitor.cpp \
-    src/numberemitter.cpp
+    src/numberemitter.cpp \
+    src/task.cpp
 
 HEADERS += \
     include/dbutils.h \
@@ -29,7 +30,8 @@ HEADERS += \
     include/menudocvisitor.h \
     include/filesavevisitor.h \
     include/numberemitter.h \
-    $$PWD/sqlite3/sqlite3.h
+    include/task.h \
+    $$PWD/sqlite3/sqlite3.h \
 
 
 

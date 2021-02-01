@@ -60,12 +60,14 @@ NumberEmitter numberEmitter;
 static void _dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     // Uses sqlite3 backup mechanism to write database connFrom to fileTo
 
-    auto secs = std::chrono::seconds(1);
-    for (int i = 0; i < 5; i++) {
+    qDebug() << "save thread:" << QThread::currentThread();
+
+    auto secs = std::chrono::milliseconds(250);
+    for (int i = 0; i < 10; i++) {
         std::this_thread::sleep_for(secs);
-        double fragment = 1.0 / 5;
+        double fragment = 1.0 / 10;
         try {
-            emit numberEmitter.emitDouble(fragment * i);
+        //    emit numberEmitter.emitDouble(fragment * i);
             emit numberEmitter.emitInt(i);
         }
         catch (...) {

@@ -4,11 +4,13 @@
 #include <QAction>
 #include <QCloseEvent>
 #include <QDebug>
-#include <QFuture>
 #include <QMainWindow>
 #include <QMenu>
+#include <QThread>
 #include <QVariant>
+
 #include <map>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,12 +25,12 @@ public:
     ~MainWindow() override;
     void setupDefaultMenus();
     void closeEvent(QCloseEvent *) override;
-    void addFuture(QFuture<void>);
-    void removeFuture(QFuture<void>);
+    void addThread(QThread *);
+    void removeThread(QThread *);
 
 private:
     Ui::MainWindow *ui;
-    std::list<QFuture<void>> m_futures;
+    std::list<std::unique_ptr<QThread>> m_threads;
 signals:
     void actionTriggered(QAction *, const QVariant &);
 public slots:
