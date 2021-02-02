@@ -5,7 +5,7 @@
 #include <QAction>
 #include <QDebug>
 #include <QDialog>
-#include <QProgressDialog>
+#include <QProgressBar>
 #include <vector>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -58,8 +58,6 @@ MainWindow::MainWindow(QWidget *parent)
              [this, action](bool checked){
              emit actionTriggered(action, QVariant(checked));});
     }
-
-
 }
 
 MainWindow::~MainWindow()
@@ -70,29 +68,24 @@ MainWindow::~MainWindow()
 void MainWindow::setupDefaultMenus() {
     ui->setupUi(this);
 }
-void MainWindow::chunkSaved(double) {
-    qDebug() << "Saving chunk!";
+void MainWindow::startProgress() {
+    // Create progress bar
+    static const int qpmax = 10;
+    auto pb = new QProgressBar(this);
+    pb->setObjectName("mainWindowSaveProgressBar");
+    statusBar()->addWidget(pb);
+    pb->setMinimum(0);
+    pb->setMaximum(qpmax);
+    pb->setValue(0);
 }
-void MainWindow::addThread(QThread *thread) {
-    auto p = std::unique_ptr<QThread>(thread);
-    m_threads.push_back(std::move(p));
+void MainWindow::stopProgress() {
+    auto pb = statusBar()->findChild<QProgressBar *>("mainWindowSaveProgressBar");
+    statusBar()->removeWidget(pb);
+    delete pb;
 }
-void MainWindow::removeThread(QThread *thread) {
-    m_threads.remove(std::unique_ptr<QThread>(thread));
+void MainWindow::setProgressValue(int v, int max) {
+    auto pb = statusBar()->findChild<QProgressBar *>("mainWindowSaveProgressBar");
+    pb->setMaximum(max);
+    pb->setValue(v);
 }
 
-void MainWindow::closeEvent(QCloseEvent *event) {
-    // Wait until all futures done
-//    for (auto f : m_futures) {
-//        QProgressDialog *qp = new QProgressDialog(this);
-//        qp->setMinimum(0);
-//        qp->setMaximum(5);
-//        qp->setValue(0);
-//        QObject::connect(&dbutils::numberEmitter, &NumberEmitter::emitInt,
-//                         [qp](int x){qp->setValue(x);});
-//        qp->show();
-//        QApplication::processEvents();
-//        f.waitForFinished();
-//        }
-    event->accept();
-}

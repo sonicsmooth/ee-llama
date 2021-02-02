@@ -15,7 +15,6 @@
 #include <QDebug>
 #include <QDockWidget>
 #include <QFileDialog>
-#include <QInputDialog>
 #include <QList>
 #include <QMenu>
 #include <QMenuBar>
@@ -23,7 +22,6 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QObject>
-#include <QProgressBar>
 #include <QPushButton>
 #include <QStatusBar>
 #include <QString>
@@ -149,43 +147,26 @@ void fileSave(const Emdi & emdi, MainWindow *mw) {
     const QMdiSubWindow *sw = mdi->activeSubWindow();
     if (!sw) return;
 
-    // Create status bar
-    auto sbfn
-    static const int qpmax = 10;
-    auto qp = new QProgressBar(mw);
-    auto sb = mw->statusBar();
-    sb->addWidget(qp);
-    qp->setMinimum(0);
-    qp->setMaximum(qpmax);
-    qp->setValue(0);
-
-
-    // Access global numberEmitter in dbutils and connect it to progress slot
-    NumberEmitter *pne = &dbutils::numberEmitter;
-    //QObject::connect(pne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved, Qt::QueuedConnection);
-    QObject::connect(pne, &NumberEmitter::emitInt, qp, &QProgressBar::setValue, Qt::QueuedConnection);
 
     IDocument *doc = emdi.document(sw);
-    auto fn = [doc,fsv,pne,qp] {
-        qDebug() << "Lambda thread:" << QThread::currentThread();
+    auto fn = [doc,fsv] {
         doc->accept(&fsv);
-        //QObject::disconnect(pne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
-        QObject::disconnect(pne, &NumberEmitter::emitInt, qp, &QProgressBar::setValue);
-//        mw->statusBar()->removeWidget(qp);
     };
-    //auto thread = QThread::create(fn);
+
     auto task = new Task(mw, fn);
-    QObject::connect(task, &QThread::finished, [mw, qp]() {
-        qDebug() << "Finished!!";
-        mw->statusBar()->removeWidget(qp);
+    // Access global numberEmitter in dbutils and connect it to progress slot
+    // Then disconnect when thread finishes
+    QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
+                     mw, &MainWindow::setProgressValue);
+    QObject::connect(task, &QThread::started, mw, &MainWindow::startProgress);
+    QObject::connect(task, &QThread::finished, mw, &MainWindow::stopProgress);
+    QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
+    QObject::connect(task, &QThread::finished, [mw](){
+        QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
+                            mw, &MainWindow::setProgressValue);
     });
-    QObject::connect(task, &QThread::finished, &QThread::deleteLater);
     task->start();
 
-    // Keep this around so we can wait for results
-    //mw->addThread(thread);
-    //qDebug() << "Starting thread:" << QThread::currentThread();
-    //thread->start();
 }
 void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
     // Collect parameters, then save and rename
@@ -193,9 +174,9 @@ void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
     if (filename.empty())
         return;
 
-    NumberEmitter &ne = dbutils::numberEmitter;
+    IntEmitter &ne = dbutils::intEmitter;
     FileSaveCopyAsVisitor fsv(filename);
-    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
+//    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     doc->accept(&fsv);
     //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     emdi.renameDocument(doc, filename);
@@ -206,8 +187,8 @@ void fileSaveCopyAs(const Emdi & emdi, const MainWindow *mw) {
     if (filename.empty())
         return;
 
-    NumberEmitter &ne = dbutils::numberEmitter;
-    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
+    IntEmitter &ne = dbutils::intEmitter;
+//    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     FileSaveCopyAsVisitor fsv(filename);
     //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     doc->accept(&fsv);

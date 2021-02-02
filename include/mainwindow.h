@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QMainWindow>
 #include <QMenu>
+#include <QProgressBar>
 #include <QThread>
 #include <QVariant>
 
@@ -24,17 +25,16 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
     void setupDefaultMenus();
-    void closeEvent(QCloseEvent *) override;
-    void addThread(QThread *);
-    void removeThread(QThread *);
 
 private:
     Ui::MainWindow *ui;
-    std::list<std::unique_ptr<QThread>> m_threads;
+
 signals:
     void actionTriggered(QAction *, const QVariant &);
 public slots:
-    void chunkSaved(double);
+    void startProgress();
+    void stopProgress();
+    void setProgressValue(int, int);
 
 };
 #endif // MAINWINDOW_H

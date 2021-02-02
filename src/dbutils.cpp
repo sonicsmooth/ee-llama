@@ -55,41 +55,64 @@ void executeList(QSqlQuery & query, const QStringList & qsl, const QString & err
             fatalStr(querr(errstr, query), linenum);
 }
 
-// Available to other modules as global
-NumberEmitter numberEmitter;
-static void _dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
+// Available to other modules as global dbutils::numberEmitter
+IntEmitter intEmitter;
+void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     // Uses sqlite3 backup mechanism to write database connFrom to fileTo
 
-    qDebug() << "save thread:" << QThread::currentThread();
-
-    auto secs = std::chrono::milliseconds(250);
-    for (int i = 0; i < 10; i++) {
-        std::this_thread::sleep_for(secs);
-        double fragment = 1.0 / 10;
-        try {
-        //    emit numberEmitter.emitDouble(fragment * i);
-            emit numberEmitter.emitInt(i);
-        }
-        catch (...) {
-            qDebug() << "error caught";
-            // TODO: do something here?
-        }
-    }
+//    auto secs = std::chrono::milliseconds(250);
+//    for (int i = 0; i < 10; i++) {
+//        std::this_thread::sleep_for(secs);
+//        try {
+//        //    emit numberEmitter.emitDouble(fragment * i);
+//            emit intEmitter.emitInt(i, 100);
+//        }
+//        catch (...) {
+//            qDebug() << "error caught";
+//            // TODO: do something here?
+//        }
+//    }
 
     QString qsConnFrom = QString::fromStdString(connFrom);
     // Need to clone db so it can be used from this function, which is callable
-    // as another thread
-    QSqlDatabase db = QSqlDatabase::cloneDatabase(qsConnFrom, "CloneDb");
-    db.open();
-    QVariant qvhandle = db.driver()->handle();
-    if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
-        sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
-        sqlite3 *pTo;
-        sqlite3_open(fileTo.c_str(), &pTo);
-        sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
-        if (pBackup) {
-            (void) sqlite3_backup_step(pBackup, -1);
-            (void) sqlite3_backup_finish(pBackup);
+    // as another thread.
+    // Also this needs to go in another scope so db object is destroyed
+    // at exit, prior to close and removal
+    {
+        QSqlDatabase db = QSqlDatabase::cloneDatabase(qsConnFrom, "CloneDb");
+        db.open();
+        QVariant qvhandle = db.driver()->handle();
+        if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
+            sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
+            sqlite3 *pTo;
+            sqlite3_open(fileTo.c_str(), &pTo);
+            sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
+            if (pBackup) {
+                int pageCount = 0;
+                int pagesPerCycle = 5;
+                int pagesCopied = 0;
+                int pagesRemaining = 0;
+                do {
+                    (void) sqlite3_backup_step(pBackup, pagesPerCycle);
+                    if (sqlite3_errcode(pFrom) != SQLITE_OK) {
+                        qDebug() << sqlite3_errmsg(pFrom);
+                    }
+                    if (sqlite3_errcode(pTo) != SQLITE_OK) {
+                        qDebug() << sqlite3_errmsg(pTo);
+                    }
+                    pageCount = sqlite3_backup_pagecount(pBackup);
+                    pagesRemaining = sqlite3_backup_remaining(pBackup);
+                    pagesCopied = pageCount - pagesRemaining;
+                    emit intEmitter.emitInt(pagesCopied, pageCount);
+                } while(pagesRemaining > 0);
+                (void) sqlite3_backup_finish(pBackup);
+            } else {
+                throw std::logic_error("sqlite3_backup_init(...) failed");
+            }
+            // causes error 21 bad parameter or other API misuse,
+            // But this occurs even if open and close are called back-to-back
+            // with no operations in between
+            sqlite3_close(pTo);
             if (sqlite3_errcode(pFrom) != SQLITE_OK) {
                 qDebug() << sqlite3_errmsg(pFrom);
             }
@@ -97,43 +120,17 @@ static void _dbSaveFromTo(const std::string & connFrom, const std::string & file
                 qDebug() << sqlite3_errmsg(pTo);
             }
         } else {
-            throw std::logic_error("sqlite3_backup_init(...) failed");
+            throw std::logic_error("invalid driver handle");
         }
-        // causes error 21 bad parameter or other API misuse,
-        // But this occurs even if open and close are called back-to-back
-        // with no operations in between
-        sqlite3_close(pTo);
-        if (sqlite3_errcode(pFrom) != SQLITE_OK) {
-            qDebug() << sqlite3_errmsg(pFrom);
-        }
-        if (sqlite3_errcode(pTo) != SQLITE_OK) {
-            qDebug() << sqlite3_errmsg(pTo);
-        }
-    } else {
-        throw std::logic_error("invalid driver handle");
+        db.close();
     }
-    //numberEmitter.disconnect();
+
+    QSqlDatabase::removeDatabase("CloneDb");
+
+
 }
 
-//class SaveRunnable : public QRunnable {
-//private:
-//    const std::string m_connFrom;
-//    const std::string m_fileTo;
-//public:
-//    SaveRunnable(const std::string & connFrom, const std::string & fileTo) :
-//        m_connFrom(connFrom),
-//        m_fileTo(fileTo){}
-//    void run() override {
-//        qDebug() << "Running from other thread.run()";
-//        _dbSaveFromTo(m_connFrom, m_fileTo);
-//    }
-//};
 
-void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
-    // Forward call to potentially long-running function
-    // Can't let future be desroyed at end of function, so we assign it to a static global
-    _dbSaveFromTo(connFrom, fileTo);
-}
 
 std::string connName(const std::string & prefix) {
     // Returns sequential name incremented each time

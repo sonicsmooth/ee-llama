@@ -11,7 +11,7 @@
 
 namespace dbutils {
 
-extern NumberEmitter numberEmitter;
+extern IntEmitter intEmitter;
 
 [[noreturn]] void fatalStr(const QString & inftxt, int line);
 QString querr(const QString & comment, const QSqlQuery & query);

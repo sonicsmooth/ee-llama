@@ -3,12 +3,10 @@
 
 #include <QObject>
 
-class NumberEmitter : public QObject {
+class IntEmitter : public QObject {
     Q_OBJECT
 signals:
-    void emitDouble(double);
-    void emitInt(int);
-    void emitUInt(unsigned int);
+    void emitInt(int, int);
 
 };
 

@@ -46,6 +46,16 @@ void SymbolLibDocument::init() {
                            "                    name TEXT CHECK(length(name) > 0));       ",
                            "INSERT INTO hello (name) VALUES ('giraffe');"};
         dbutils::executeList(query, qsl, "Could not init", __LINE__);
+
+        query.exec("BEGIN");
+        QString s = QString("INSERT INTO hello (name) VALUES (:v);");
+        query.prepare(s);
+
+        for (int i = 0; i < 1000; i++) {
+            query.bindValue(":v",QVariant(i));
+            query.exec();
+        }
+        query.exec("COMMIT");
     }
     m_activeState = true;
 }
