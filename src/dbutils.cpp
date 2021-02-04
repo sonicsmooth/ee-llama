@@ -55,79 +55,82 @@ void executeList(QSqlQuery & query, const QStringList & qsl, const QString & err
             fatalStr(querr(errstr, query), linenum);
 }
 
+std::string dbNameFromConnName(const std::string & conn) {
+    // Returns database name from connection name.
+    // Since this fn may be called from another thread, we need
+    // to clone the connection and cleanup.
+    // Get filename from connection name.  Since this fn is
+    // probably called from another thread, we need to clone first
+    QString dbName;
+    QString qsConn = QString::fromStdString(conn);
+    {
+        // Todo: find a way to guarantee unique clone name
+        QSqlDatabase db = QSqlDatabase::cloneDatabase(qsConn, "CloneDb");
+        if (!db.open()) {
+            throw std::logic_error("Could not open cloned database");
+        }
+        dbName = db.databaseName();
+        db.close();
+    }
+    QSqlDatabase::removeDatabase("CloneDb");
+    return dbName.toStdString();
+}
+
 // Available to other modules as global dbutils::numberEmitter
 IntEmitter intEmitter;
 void dbSaveFromTo(const std::string & connFrom, const std::string & fileTo) {
     // Uses sqlite3 backup mechanism to write database connFrom to fileTo
 
-//    auto secs = std::chrono::milliseconds(250);
-//    for (int i = 0; i < 10; i++) {
-//        std::this_thread::sleep_for(secs);
-//        try {
-//        //    emit numberEmitter.emitDouble(fragment * i);
-//            emit intEmitter.emitInt(i, 100);
-//        }
-//        catch (...) {
-//            qDebug() << "error caught";
-//            // TODO: do something here?
-//        }
-//    }
+    // Could be in-memory or tmp file
+    std::string fileFrom = dbNameFromConnName(connFrom);
 
-    QString qsConnFrom = QString::fromStdString(connFrom);
-    // Need to clone db so it can be used from this function, which is callable
-    // as another thread.
-    // Also this needs to go in another scope so db object is destroyed
-    // at exit, prior to close and removal
-    {
-        QSqlDatabase db = QSqlDatabase::cloneDatabase(qsConnFrom, "CloneDb");
-        db.open();
-        QVariant qvhandle = db.driver()->handle();
-        if (qvhandle.isValid() && qstrcmp(qvhandle.typeName(), "sqlite3*") == 0) {
-            sqlite3 *pFrom = *static_cast<sqlite3 **>(qvhandle.data());
-            sqlite3 *pTo;
-            sqlite3_open(fileTo.c_str(), &pTo);
-            sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
-            if (pBackup) {
-                int pageCount = 0;
-                int pagesPerCycle = 5;
-                int pagesCopied = 0;
-                int pagesRemaining = 0;
-                do {
-                    (void) sqlite3_backup_step(pBackup, pagesPerCycle);
-                    if (sqlite3_errcode(pFrom) != SQLITE_OK) {
-                        qDebug() << sqlite3_errmsg(pFrom);
-                    }
-                    if (sqlite3_errcode(pTo) != SQLITE_OK) {
-                        qDebug() << sqlite3_errmsg(pTo);
-                    }
-                    pageCount = sqlite3_backup_pagecount(pBackup);
-                    pagesRemaining = sqlite3_backup_remaining(pBackup);
-                    pagesCopied = pageCount - pagesRemaining;
-                    emit intEmitter.emitInt(pagesCopied, pageCount);
-                } while(pagesRemaining > 0);
-                (void) sqlite3_backup_finish(pBackup);
-            } else {
-                throw std::logic_error("sqlite3_backup_init(...) failed");
-            }
-            // causes error 21 bad parameter or other API misuse,
-            // But this occurs even if open and close are called back-to-back
-            // with no operations in between
-            sqlite3_close(pTo);
-            if (sqlite3_errcode(pFrom) != SQLITE_OK) {
-                qDebug() << sqlite3_errmsg(pFrom);
-            }
-            if (sqlite3_errcode(pTo) != SQLITE_OK) {
-                qDebug() << sqlite3_errmsg(pTo);
-            }
-        } else {
-            throw std::logic_error("invalid driver handle");
-        }
-        db.close();
+    sqlite3 *pFrom;
+    if (sqlite3_open(fileFrom.c_str(), &pFrom) != SQLITE_OK) {
+        qDebug() << sqlite3_errmsg(pFrom);
+        throw std::logic_error("Could not open 'from' database");
     }
 
-    QSqlDatabase::removeDatabase("CloneDb");
+    sqlite3 *pTo;
+    if (sqlite3_open(fileTo.c_str(), &pTo) != SQLITE_OK) {
+        qDebug() << sqlite3_errmsg(pTo);
+        throw std::logic_error("Could not open 'to' database");
+    }
 
+    sqlite3_backup *pBackup = sqlite3_backup_init(pTo, "main", pFrom, "main");
+    if (!pBackup) {
+        throw std::logic_error("sqlite3_backup_init(...) failed");
+    }
 
+    int pagesPerCycle = 50;
+    int pageCount = 0;
+    int pagesCopied = 0;
+    int pagesRemaining = 0;
+    do {
+        sqlite3_backup_step(pBackup, pagesPerCycle);
+        if (sqlite3_errcode(pFrom) != SQLITE_OK) {
+            qDebug() << sqlite3_errmsg(pFrom);
+        }
+        if (sqlite3_errcode(pTo) != SQLITE_OK) {
+            qDebug() << sqlite3_errmsg(pTo);
+        }
+        pageCount = sqlite3_backup_pagecount(pBackup);
+        pagesRemaining = sqlite3_backup_remaining(pBackup);
+        pagesCopied = pageCount - pagesRemaining;
+        emit intEmitter.emitInt(pagesCopied, pageCount);
+    } while(pagesRemaining > 0);
+    (void) sqlite3_backup_finish(pBackup);
+
+    // causes error 21 bad parameter or other API misuse,
+    // But this occurs even if open and close are called back-to-back
+    // with no operations in between
+    sqlite3_close(pFrom);
+    if (sqlite3_errcode(pFrom) != SQLITE_OK) {
+        qDebug() << sqlite3_errmsg(pFrom);
+    }
+    sqlite3_close(pTo);
+    if (sqlite3_errcode(pTo) != SQLITE_OK) {
+        qDebug() << sqlite3_errmsg(pTo);
+    }
 }
 
 

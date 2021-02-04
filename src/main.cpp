@@ -85,6 +85,7 @@ template<typename T>
 void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     std::string docname = docName<T>();
     auto p = std::make_unique<T>(docname);
+    qDebug() << "created doc" << p.get();
     emdi.openDocument(p.get());
     emdi.newMdiFrame(docname, userType);
     docVec.push_back(std::move(p));
@@ -176,9 +177,7 @@ void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
 
     IntEmitter &ne = dbutils::intEmitter;
     FileSaveCopyAsVisitor fsv(filename);
-//    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     doc->accept(&fsv);
-    //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     emdi.renameDocument(doc, filename);
 }
 void fileSaveCopyAs(const Emdi & emdi, const MainWindow *mw) {
@@ -188,9 +187,7 @@ void fileSaveCopyAs(const Emdi & emdi, const MainWindow *mw) {
         return;
 
     IntEmitter &ne = dbutils::intEmitter;
-//    QObject::connect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     FileSaveCopyAsVisitor fsv(filename);
-    //QObject::disconnect(&ne, &NumberEmitter::emitDouble, mw, &MainWindow::chunkSaved);
     doc->accept(&fsv);
 }
 
@@ -337,24 +334,14 @@ int main(int argc, char *argv[]) {
     QObject::connect(&emdi, &Emdi::docClosed,
         [&docVec](void *p) {
             IDocument *dp = static_cast<IDocument *>(p);
-            docVec.remove(std::unique_ptr<IDocument>(dp));});
+            docVec.remove_if([dp](const std::unique_ptr<IDocument> & up) {
+                return up.get() == dp;
+            });});
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
     // Main window and external toolbar
     auto mw = emdi.newMainWindow();
 
-
-//    auto qth =
-//    QThread::create([qp](){
-//        NumberEmitter ne;
-//        QObject::connect(&ne, &NumberEmitter::emitInt,
-//                         qp, &QProgressBar::setValue);
-//        for(int i=0; i<qpmax+1; i++) {
-//            auto msecs = std::chrono::milliseconds(10);
-//            std::this_thread::sleep_for(msecs);
-//            emit ne.emitInt(i);
-//        }});
-//    qth->start();
 
     a.exec();
 //    qth->wait();

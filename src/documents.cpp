@@ -28,12 +28,13 @@ void SymbolLibDocument::init() {
         return;
     } else {
         // Creates temp database to prime save, save as, etc.
-        // Does not create anything with full filename
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", QString::fromStdString(m_connName));
 #if defined(QT_DEBUG)
         db.setDatabaseName("tmp_" + QString::fromStdString(m_name));
 #elif defined(QT_NO_DEBUG)
-        db.setDatabaseName(":memory:");
+        QString dbName = "tmp_" + QString::fromStdString(m_name);
+        QString fileName = QString("file:%1?mode=memory&cache=shared").arg(dbName);
+        db.setDatabaseName(fileName);
 #endif
         if(!db.open()) {
             qDebug() << "Can't create database";
@@ -51,8 +52,8 @@ void SymbolLibDocument::init() {
         QString s = QString("INSERT INTO hello (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 1000; i++) {
-            query.bindValue(":v",QVariant(i));
+        for (int i = 0; i < 10000; i++) {
+            query.bindValue(":v", QVariant(i));
             query.exec();
         }
         query.exec("COMMIT");
@@ -64,13 +65,14 @@ void SymbolLibDocument::done() {
         return;
     } else {
         // Removes and deletes temp database
-        QString tmpname = QString::fromStdString(m_connName);
+        QString dbname = QString::fromStdString(m_connName);
+        QString filename = "tmp_" + QString::fromStdString(m_name);
         {
-            QSqlDatabase db = QSqlDatabase::database(tmpname);
+            QSqlDatabase db = QSqlDatabase::database(dbname);
             db.close();
         }
-        QSqlDatabase::removeDatabase(tmpname);
-        std::remove(tmpname.toLatin1());
+        QSqlDatabase::removeDatabase(dbname);
+        std::remove(filename.toLatin1());
     }
     m_activeState = false;
 }
