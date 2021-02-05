@@ -4,17 +4,12 @@
 #include "emdilib.h"
 #include "documents.h"
 #include "menudocvisitor.h"
-#include "numberemitter.h"
-#include "filesavevisitor.h"
-#include "filesavecopyasvisitor.h"
-#include "extensiondocvisitor.h"
-#include "task.h"
+#include "filedialogs.h"
 
 #include <QAction>
 #include <QApplication>
 #include <QDebug>
 #include <QDockWidget>
-#include <QFileDialog>
 #include <QList>
 #include <QMenu>
 #include <QMenuBar>
@@ -57,10 +52,6 @@ auto makeDispatch(const dispatchMap_t &);
 auto mainCtor(const dispatchMap_t &);
 void updateMenus(const Emdi &, const QMdiSubWindow *);
 void setActionChecked(const QWidget *, const std::string & act, bool checked);
-void fileSave(const Emdi &, const QMainWindow *);
-auto fileSaveParams(const Emdi &, const QMainWindow *);
-void fileSaveAs(const Emdi &, const QMainWindow *);
-void fileSaveCopyAs(const Emdi &, const QMainWindow *);
 
 template <typename T> std::string docString() {return "undefined";}
 template <> std::string docString<SymbolLibDocument>() {return "SymLibDocument_";}
@@ -126,87 +117,6 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
     }
 }
 
-IDocument *docFromMainWindow(const Emdi & emdi, const MainWindow *mw) {
-    // Collect doc and new filename
-    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
-    const QMdiSubWindow *sw = mdi->activeSubWindow();
-    if (!sw) return nullptr;
-    IDocument *doc = emdi.document(sw);
-    assert(doc);
-    return doc;
-}
-
-std::string fileSaveAsName(const Emdi & emdi, const MainWindow *mw) {
-    // Collect doc and new filename
-    IDocument *doc = docFromMainWindow(emdi, mw);
-    ExtensionDocVisitor extvisitor;
-    doc->accept(&extvisitor);
-    QString extension = QString::fromStdString(extvisitor.extension());
-    QString qfilename = QFileDialog::getSaveFileName(nullptr, "", extension);
-    return qfilename.toStdString();
-}
-void fileSave(const Emdi & emdi, MainWindow *mw) {
-    // Use visitor pattern to save file
-    IDocument *doc = docFromMainWindow(emdi, mw);
-    auto task = new Task(mw, [doc] {
-        FileSaveVisitor fsv;
-        doc->accept(&fsv);
-    });
-    // Access global numberEmitter in dbutils and connect it to progress slot
-    // Then disconnect when thread finishes
-    QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                     mw, &MainWindow::setProgressValue);
-    QObject::connect(task, &QThread::started, mw, &MainWindow::startProgress);
-    QObject::connect(task, &QThread::finished, mw, &MainWindow::stopProgress);
-    QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
-    QObject::connect(task, &QThread::finished, [mw](){
-        QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                            mw, &MainWindow::setProgressValue);});
-    task->start();
-}
-void fileSaveAs(const Emdi & emdi, MainWindow *mw) {
-    // Similar to fileSave, except it renames doc too
-    // Use visitor pattern to save file
-    IDocument *doc = docFromMainWindow(emdi, mw);
-    const std::string filename = fileSaveAsName(emdi, mw);
-    auto task = new Task(mw, [doc, filename] {
-        FileSaveCopyAsVisitor fsv(filename);
-        doc->accept(&fsv);
-    });
-    // Access global numberEmitter in dbutils and connect it to progress slot
-    // Then disconnect when thread finishes
-    QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                     mw, &MainWindow::setProgressValue);
-    QObject::connect(task, &QThread::started, mw, &MainWindow::startProgress);
-    QObject::connect(task, &QThread::finished, mw, &MainWindow::stopProgress);
-    QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
-    QObject::connect(task, &QThread::finished, [mw](){
-        QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                            mw, &MainWindow::setProgressValue);});
-    task->start();
-    emdi.renameDocument(doc, filename);
-}
-void fileSaveCopyAs(const Emdi & emdi, MainWindow *mw) {
-    // Same as fileSaveAs, except it doesn't rename doc
-    // Use visitor pattern to save file
-    IDocument *doc = docFromMainWindow(emdi, mw);
-    const std::string filename = fileSaveAsName(emdi, mw);
-    auto task = new Task(mw, [doc, filename] {
-        FileSaveCopyAsVisitor fsv(filename);
-        doc->accept(&fsv);
-    });
-    // Access global numberEmitter in dbutils and connect it to progress slot
-    // Then disconnect when thread finishes
-    QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                     mw, &MainWindow::setProgressValue);
-    QObject::connect(task, &QThread::started, mw, &MainWindow::startProgress);
-    QObject::connect(task, &QThread::finished, mw, &MainWindow::stopProgress);
-    QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
-    QObject::connect(task, &QThread::finished, [mw](){
-        QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                            mw, &MainWindow::setProgressValue);});
-    task->start();
-}
 
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     QWidget *w = new QWidget();
@@ -288,9 +198,9 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     dm["actionNewSchematic"] = [&](const QVariant &){newDoc<SchDocument>("Main Editor", emdi, docVec);};
     dm["actionNewPCB"] = [&](const QVariant &){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](const QVariant &){};
-    dm["actionSave"] = [&](const QVariant & v){fileSave(emdi, v.value<MainWindow *>());};
-    dm["actionSaveAs"] = [&](const QVariant & v){fileSaveAs(emdi, v.value<MainWindow *>());};
-    dm["actionSaveCopyAs"] = [&](const QVariant & v){fileSaveCopyAs(emdi, v.value<MainWindow *>());};
+    dm["actionSave"] = [&](const QVariant & v){filedialogs::fileSave(emdi, v.value<MainWindow *>());};
+    dm["actionSaveAs"] = [&](const QVariant & v){filedialogs::fileSaveAs(emdi, v.value<MainWindow *>());};
+    dm["actionSaveCopyAs"] = [&](const QVariant & v){filedialogs::fileSaveCopyAs(emdi, v.value<MainWindow *>());};
     dm["actionCloseDoc"] = [&](const QVariant &){emdi.closeDocument();};
     dm["actionExit"] = [&](const QVariant &){quitSequence(emdi);};
     dm["actionViewProperties"] = [&](const QVariant & qv){
