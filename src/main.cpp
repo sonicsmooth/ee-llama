@@ -85,7 +85,6 @@ template<typename T>
 void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     std::string docname = docName<T>();
     auto p = std::make_unique<T>(docname);
-    qDebug() << "created doc" << p.get();
     emdi.openDocument(p.get());
     emdi.newMdiFrame(docname, userType);
     docVec.push_back(std::move(p));
@@ -126,35 +125,33 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
         }
     }
 }
-auto fileSaveParams(const Emdi & emdi, const MainWindow *mw) {
+
+IDocument *docFromMainWindow(const Emdi & emdi, const MainWindow *mw) {
     // Collect doc and new filename
     const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
     const QMdiSubWindow *sw = mdi->activeSubWindow();
+    if (!sw) return nullptr;
     IDocument *doc = emdi.document(sw);
+    assert(doc);
+    return doc;
+}
+
+std::string fileSaveAsName(const Emdi & emdi, const MainWindow *mw) {
+    // Collect doc and new filename
+    IDocument *doc = docFromMainWindow(emdi, mw);
     ExtensionDocVisitor extvisitor;
     doc->accept(&extvisitor);
     QString extension = QString::fromStdString(extvisitor.extension());
-    std::string filename = QFileDialog::getSaveFileName(nullptr, "", extension).toStdString();
-    struct {
-        IDocument *doc;
-        std::string filename;
-    } retval {doc, filename};
-    return retval;
+    QString qfilename = QFileDialog::getSaveFileName(nullptr, "", extension);
+    return qfilename.toStdString();
 }
 void fileSave(const Emdi & emdi, MainWindow *mw) {
     // Use visitor pattern to save file
-    FileSaveVisitor fsv;
-    const QMdiArea *mdi = static_cast<QMdiArea *>(mw->centralWidget());
-    const QMdiSubWindow *sw = mdi->activeSubWindow();
-    if (!sw) return;
-
-
-    IDocument *doc = emdi.document(sw);
-    auto fn = [doc,fsv] {
+    IDocument *doc = docFromMainWindow(emdi, mw);
+    auto task = new Task(mw, [doc] {
+        FileSaveVisitor fsv;
         doc->accept(&fsv);
-    };
-
-    auto task = new Task(mw, fn);
+    });
     // Access global numberEmitter in dbutils and connect it to progress slot
     // Then disconnect when thread finishes
     QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
@@ -164,31 +161,51 @@ void fileSave(const Emdi & emdi, MainWindow *mw) {
     QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
     QObject::connect(task, &QThread::finished, [mw](){
         QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
-                            mw, &MainWindow::setProgressValue);
-    });
+                            mw, &MainWindow::setProgressValue);});
     task->start();
-
 }
-void fileSaveAs(const Emdi & emdi, const MainWindow *mw) {
-    // Collect parameters, then save and rename
-    auto [doc, filename] = fileSaveParams(emdi, mw);
-    if (filename.empty())
-        return;
-
-    IntEmitter &ne = dbutils::intEmitter;
-    FileSaveCopyAsVisitor fsv(filename);
-    doc->accept(&fsv);
+void fileSaveAs(const Emdi & emdi, MainWindow *mw) {
+    // Similar to fileSave, except it renames doc too
+    // Use visitor pattern to save file
+    IDocument *doc = docFromMainWindow(emdi, mw);
+    const std::string filename = fileSaveAsName(emdi, mw);
+    auto task = new Task(mw, [doc, filename] {
+        FileSaveCopyAsVisitor fsv(filename);
+        doc->accept(&fsv);
+    });
+    // Access global numberEmitter in dbutils and connect it to progress slot
+    // Then disconnect when thread finishes
+    QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
+                     mw, &MainWindow::setProgressValue);
+    QObject::connect(task, &QThread::started, mw, &MainWindow::startProgress);
+    QObject::connect(task, &QThread::finished, mw, &MainWindow::stopProgress);
+    QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
+    QObject::connect(task, &QThread::finished, [mw](){
+        QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
+                            mw, &MainWindow::setProgressValue);});
+    task->start();
     emdi.renameDocument(doc, filename);
 }
-void fileSaveCopyAs(const Emdi & emdi, const MainWindow *mw) {
-    // Collect parameters, then save.  Same as fileSaveAs, except without the rename
-    auto [doc, filename] = fileSaveParams(emdi, mw);
-    if (filename.empty())
-        return;
-
-    IntEmitter &ne = dbutils::intEmitter;
-    FileSaveCopyAsVisitor fsv(filename);
-    doc->accept(&fsv);
+void fileSaveCopyAs(const Emdi & emdi, MainWindow *mw) {
+    // Same as fileSaveAs, except it doesn't rename doc
+    // Use visitor pattern to save file
+    IDocument *doc = docFromMainWindow(emdi, mw);
+    const std::string filename = fileSaveAsName(emdi, mw);
+    auto task = new Task(mw, [doc, filename] {
+        FileSaveCopyAsVisitor fsv(filename);
+        doc->accept(&fsv);
+    });
+    // Access global numberEmitter in dbutils and connect it to progress slot
+    // Then disconnect when thread finishes
+    QObject::connect(&dbutils::intEmitter, &IntEmitter::emitInt,
+                     mw, &MainWindow::setProgressValue);
+    QObject::connect(task, &QThread::started, mw, &MainWindow::startProgress);
+    QObject::connect(task, &QThread::finished, mw, &MainWindow::stopProgress);
+    QObject::connect(task, &QThread::finished, task, &QThread::deleteLater);
+    QObject::connect(task, &QThread::finished, [mw](){
+        QObject::disconnect(&dbutils::intEmitter, &IntEmitter::emitInt,
+                            mw, &MainWindow::setProgressValue);});
+    task->start();
 }
 
 QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
@@ -340,7 +357,7 @@ int main(int argc, char *argv[]) {
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
     // Main window and external toolbar
-    auto mw = emdi.newMainWindow();
+    emdi.newMainWindow();
 
 
     a.exec();
