@@ -9,28 +9,36 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    src/buttonwindow.cpp \
     src/dbutils.cpp \
     src/extensiondocvisitor.cpp \
     src/filedialogs.cpp \
     src/filesavecopyasvisitor.cpp \
     src/main.cpp \
+    src/maindispatch.cpp \
     src/mainwindow.cpp \
     src/documents.cpp \
     src/menudocvisitor.cpp \
     src/filesavevisitor.cpp \
+    src/misc.cpp \
     src/numberemitter.cpp \
     src/task.cpp
 
 HEADERS += \
+    include/buttonwindow.h \
     include/dbutils.h \
+    include/eellama_types.h \
     include/extensiondocvisitor.h \
     include/filedialogs.h \
     include/filesavecopyasvisitor.h \
     include/idocvisitor.h \
+    include/maindispatch.h \
     include/mainwindow.h \
     include/documents.h \
     include/menudocvisitor.h \
     include/filesavevisitor.h \
+    include/misc.h \
+    include/newdocs.h \
     include/numberemitter.h \
     include/task.h \
     $$PWD/sqlite3/sqlite3.h \
