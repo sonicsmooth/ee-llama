@@ -9,10 +9,10 @@ dispatchMap_t dispatchMap(Emdi & emdi, docVec_t & docVec) {
     // Each entry in dispatch map is a lambda taking a QVariant
     // Typically the QVariant arg is carried over by the action which got triggered
     dispatchMap_t dm;
-    dm["actionNewSymbolLibrary"] = [&](const QVariant &){newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);};
-    dm["actionNewFootprintLibrary"] = [&](const QVariant &){newDoc<FootprintLibDocument>("Main Editor", emdi, docVec);};
-    dm["actionNewSchematic"] = [&](const QVariant &){newDoc<SchDocument>("Main Editor", emdi, docVec);};
-    dm["actionNewPCB"] = [&](const QVariant &){newDoc<PCBDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewSymbolLibrary"] = [&](const QVariant &){newdocs::newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewFootprintLibrary"] = [&](const QVariant &){newdocs::newDoc<FootprintLibDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewSchematic"] = [&](const QVariant &){newdocs::newDoc<SchDocument>("Main Editor", emdi, docVec);};
+    dm["actionNewPCB"] = [&](const QVariant &){newdocs::newDoc<PCBDocument>("Main Editor", emdi, docVec);};
     dm["actionOpen"] = [&](const QVariant &){};
     dm["actionSave"] = [&](const QVariant & v){filedialogs::fileSave(emdi, v.value<MainWindow *>());};
     dm["actionSaveAs"] = [&](const QVariant & v){filedialogs::fileSaveAs(emdi, v.value<MainWindow *>());};

@@ -6,8 +6,11 @@
 #include "documents.h"
 
 #include <iomanip>
+#include <mutex>
 #include <sstream>
 #include <string>
+
+namespace newdocs {
 
 template <typename T> std::string docString() {return "undefined";}
 template <> inline std::string docString<SymbolLibDocument>() {return "SymLibDocument_";}
@@ -35,8 +38,12 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     auto p = std::make_unique<T>(docname);
     emdi.openDocument(p.get());
     emdi.newMdiFrame(docname, userType);
+
+    static std::mutex mutex;
+    std::lock_guard<std::mutex> guard(mutex);
     docVec.push_back(std::move(p));
 }
 
+} // namespace
 
 #endif // NEWDOCS_H

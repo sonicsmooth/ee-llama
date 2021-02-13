@@ -42,17 +42,17 @@ void SymbolLibDocument::init() {
 
         QSqlQuery query(db);
         const
-        QStringList qsl = {"DROP TABLE IF EXISTS hello;",
-                           "CREATE TABLE hello (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
-                           "                    name TEXT CHECK(length(name) > 0));       ",
-                           "INSERT INTO hello (name) VALUES ('giraffe');"};
+        QStringList qsl = {"DROP TABLE IF EXISTS SymbolTable;",
+                           "CREATE TABLE SymbolTable (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
+                           "                          name TEXT CHECK(length(name) > 0));       ",
+                           "INSERT INTO SymbolTable (name) VALUES ('giraffe');"};
         dbutils::executeList(query, qsl, "Could not init", __LINE__);
 
         query.exec("BEGIN");
-        QString s = QString("INSERT INTO hello (name) VALUES (:v);");
+        QString s = QString("INSERT INTO SymbolTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
@@ -111,12 +111,14 @@ void SymbolLibDocument::setName(const std::string & newName) {
 }
 void SymbolLibDocument::save() const {
     // Saves the document using connName
-    dbutils::dbSaveFromTo(m_connName, m_name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, m_name);
     // todo: dirty bit
 }
 void SymbolLibDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
-    dbutils::dbSaveFromTo(m_connName, name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, name);
 }
 
 FootprintLibDocument::FootprintLibDocument(const std::string & name) :
@@ -131,13 +133,56 @@ FootprintLibDocument::~FootprintLibDocument() {
     qDebug() << QString("FootprintLibDocument::~FootprintLibDocument() (%1)").arg(m_name.c_str());
 }
 void FootprintLibDocument::init() {
-    if (m_activeState)
+    if (m_activeState) {
         return;
+    } else {
+        // Creates temp database to prime save, save as, etc.
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", QString::fromStdString(m_connName));
+#if defined(QT_DEBUG)
+        db.setDatabaseName("tmp_" + QString::fromStdString(m_name));
+#elif defined(QT_NO_DEBUG)
+        QString dbName = "tmp_" + QString::fromStdString(m_name);
+        QString fileName = QString("file:%1?mode=memory&cache=shared").arg(dbName);
+        db.setDatabaseName(fileName);
+#endif
+        if(!db.open()) {
+            qDebug() << "Can't create database";
+        }
+
+        QSqlQuery query(db);
+        const
+        QStringList qsl = {"DROP TABLE IF EXISTS FootprintTable;",
+                           "CREATE TABLE FootprintTable (ID  INTEGER PRIMARY KEY AUTOINCREMENT, \n"
+                           "                             name TEXT CHECK(length(name) > 0));       ",
+                           "INSERT INTO FootprintTable (name) VALUES ('giraffe');"};
+        dbutils::executeList(query, qsl, "Could not init", __LINE__);
+
+        query.exec("BEGIN");
+        QString s = QString("INSERT INTO FootprintTable (name) VALUES (:v);");
+        query.prepare(s);
+
+        for (int i = 0; i < 1000000; i++) {
+            query.bindValue(":v", QVariant(i));
+            query.exec();
+        }
+        query.exec("COMMIT");
+    }
     m_activeState = true;
 }
 void FootprintLibDocument::done() {
-    if (!m_activeState)
+    if (!m_activeState) {
         return;
+    } else {
+        // Removes and deletes temp database
+        QString dbname = QString::fromStdString(m_connName);
+        QString filename = "tmp_" + QString::fromStdString(m_name);
+        {
+            QSqlDatabase db = QSqlDatabase::database(dbname);
+            db.close();
+        }
+        QSqlDatabase::removeDatabase(dbname);
+        std::remove(filename.toLatin1());
+    }
     m_activeState = false;
 }
 bool FootprintLibDocument::isActive() {
@@ -175,12 +220,14 @@ void FootprintLibDocument::setName(const std::string & newName) {
 }
 void FootprintLibDocument::save() const {
     // Saves the document using connName
-    dbutils::dbSaveFromTo(m_connName, m_name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, m_name);
 }
 
 void FootprintLibDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
-    dbutils::dbSaveFromTo(m_connName, name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, name);
 }
 
 SchDocument::SchDocument(const std::string & name) :
@@ -241,11 +288,13 @@ void SchDocument::setName(const std::string & newName) {
 }
 void SchDocument::save() const {
     // Saves the document using connName
-    dbutils::dbSaveFromTo(m_connName, m_name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, m_name);
 }
 void SchDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
-    dbutils::dbSaveFromTo(m_connName, name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, name);
 }
 
 
@@ -306,10 +355,12 @@ void PCBDocument::setName(const std::string & newName) {
 }
 void PCBDocument::save() const {
     // Saves the document using connName
-    dbutils::dbSaveFromTo(m_connName, m_name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, m_name);
 }
 void PCBDocument::saveCopyAs(const std::string & name) const {
     // Save current database connection m_name as file name
-    dbutils::dbSaveFromTo(m_connName, name);
+    if (m_activeState)
+        dbutils::dbSaveFromTo(m_connName, name);
 }
 

@@ -9,6 +9,7 @@
 
 #include <QFileDialog>
 #include <QObject>
+#include <QThread>
 
 namespace filedialogs {
 
@@ -21,7 +22,6 @@ static IDocument *docFromMainWindow(const Emdi & emdi, const QMainWindow *mw) {
     assert(doc);
     return doc;
 }
-
 
 static std::string fileSaveAsName(const Emdi & emdi, const QMainWindow *mw) {
     // Collect doc and new filename
@@ -36,7 +36,7 @@ void fileSave(const Emdi & emdi, QObject *parent) {
     // Use visitor pattern to save file
     MainWindow *mw = static_cast<MainWindow *>(parent);
     IDocument *doc = docFromMainWindow(emdi, mw);
-    auto task = new Task(mw, [doc] {
+    auto task = QThread::create([doc] {
         FileSaveVisitor fsv;
         doc->accept(&fsv);
     });
@@ -58,7 +58,7 @@ void fileSaveAs(const Emdi & emdi, QObject *parent) {
     MainWindow *mw = static_cast<MainWindow *>(parent);
     IDocument *doc = docFromMainWindow(emdi, mw);
     const std::string filename = fileSaveAsName(emdi, mw);
-    auto task = new Task(mw, [doc, filename] {
+    auto task = QThread::create([doc, filename] {
         FileSaveCopyAsVisitor fsv(filename);
         doc->accept(&fsv);
     });
@@ -81,7 +81,7 @@ void fileSaveCopyAs(const Emdi & emdi, QObject *parent) {
     MainWindow *mw = static_cast<MainWindow *>(parent);
     IDocument *doc = docFromMainWindow(emdi, mw);
     const std::string filename = fileSaveAsName(emdi, mw);
-    auto task = new Task(mw, [doc, filename] {
+    auto task = QThread::create([doc, filename] {
         FileSaveCopyAsVisitor fsv(filename);
         doc->accept(&fsv);
     });

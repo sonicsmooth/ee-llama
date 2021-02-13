@@ -21,8 +21,7 @@ SOURCES += \
     src/menudocvisitor.cpp \
     src/filesavevisitor.cpp \
     src/misc.cpp \
-    src/numberemitter.cpp \
-    src/task.cpp
+    src/numberemitter.cpp
 
 HEADERS += \
     include/buttonwindow.h \
@@ -31,6 +30,7 @@ HEADERS += \
     include/extensiondocvisitor.h \
     include/filedialogs.h \
     include/filesavecopyasvisitor.h \
+    include/guilauncher.h \
     include/idocvisitor.h \
     include/maindispatch.h \
     include/mainwindow.h \

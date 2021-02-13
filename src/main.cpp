@@ -5,10 +5,11 @@
 #include "emdilib.h"
 #include "eellama_types.h"
 #include "filedialogs.h"
+#include "guilauncher.h"
 #include "mainwindow.h"
 #include "maindispatch.h"
 #include "menudocvisitor.h"
-#include "newdocs.h"
+#include "task.h"
 
 #include <QAction>
 #include <QApplication>
@@ -21,6 +22,7 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QObject>
+#include <QPushButton>
 #include <QString>
 #include <QVariant>
 
@@ -77,9 +79,6 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
 
 
 
-
-
-
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
@@ -107,12 +106,23 @@ int main(int argc, char *argv[]) {
             });});
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
-    // Main window and external toolbar
+
+
+
     emdi.newMainWindow();
 
-
+    TestClass *worker = new TestClass("Tc1");
+    worker->deleteLater();
+    QThread *thr = new QThread;
+    QObject::connect(thr, &QThread::started, worker, &TestClass::doWork);
+    QObject::connect(worker, qOverload<int,int>(&TestClass::progress), [](int x, int y){
+        qDebug() << x << "out of" << y;});
+    QObject::connect(worker, &TestClass::done, []{qDebug() << "Done";});
+    worker->moveToThread(thr);
+    thr->start();
     a.exec();
-//    qth->wait();
+    thr->wait();
+    thr->quit();
     qDebug("Done");
 
 }

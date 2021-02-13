@@ -19,22 +19,22 @@ QWidget *buttonWindow(Emdi & emdi, docVec_t & docVec) {
     pb = new QPushButton("New Symbol Library");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);});
+        newdocs::newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);});
 
     pb = new QPushButton("New Footprint Library");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);});
+        newdocs::newDoc<SymbolLibDocument>("Main Editor", emdi, docVec);});
 
     pb = new QPushButton("New Schematic");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        newDoc<SchDocument>("Main Editor", emdi, docVec);});
+        newdocs::newDoc<SchDocument>("Main Editor", emdi, docVec);});
 
     pb = new QPushButton("New PCB");
     vb->addWidget(pb);
     QObject::connect(pb, &QPushButton::clicked, [&](){
-        newDoc<SchDocument>("Main Editor", emdi, docVec);});
+        newdocs::newDoc<SchDocument>("Main Editor", emdi, docVec);});
 
     pb = new QPushButton("Close Current Doc");
     vb->addWidget(pb);
