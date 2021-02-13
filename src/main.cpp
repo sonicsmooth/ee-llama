@@ -1,4 +1,4 @@
-//#include "vld.h"
+#include "vld.h"
 #include "buttonwindow.h"
 #include "dbutils.h"
 #include "documents.h"
@@ -24,6 +24,7 @@
 #include <QObject>
 #include <QPushButton>
 #include <QString>
+#include <QThreadPool>
 #include <QVariant>
 
 #include <map>
@@ -37,13 +38,8 @@
 // TODO: menus
 
 
-
-
-
-
 void updateMenus(const Emdi &, const QMdiSubWindow *);
 void setActionChecked(const QWidget *, const std::string & act, bool checked);
-
 
 
 // TODO: Create something like defaultMenus()
@@ -78,9 +74,9 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
 }
 
 
-
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
+
 
     // Enhanced MDI, list of documents, dispatch map
     Emdi emdi;
@@ -106,23 +102,23 @@ int main(int argc, char *argv[]) {
             });});
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
-
-
-
     emdi.newMainWindow();
 
-    TestClass *worker = new TestClass("Tc1");
-    worker->deleteLater();
-    QThread *thr = new QThread;
-    QObject::connect(thr, &QThread::started, worker, &TestClass::doWork);
-    QObject::connect(worker, qOverload<int,int>(&TestClass::progress), [](int x, int y){
-        qDebug() << x << "out of" << y;});
-    QObject::connect(worker, &TestClass::done, []{qDebug() << "Done";});
-    worker->moveToThread(thr);
-    thr->start();
+    TestClass worker("Tc1");
+    QThread thr;
+
+    QObject::connect(&thr, &QThread::started, &worker, &TestClass::doWork);
+    //QObject::connect(&worker, &TestClass::progress, [](int x, int y){qDebug() << x << "out of" << y;});
+    QObject::connect(&worker, &TestClass::done, []{qDebug() << "Done";});
+    QObject::connect(&thr, &QThread::finished, []{qDebug() << "finished";});
+
+    worker.moveToThread(&thr);
+
+    thr.start();
     a.exec();
-    thr->wait();
-    thr->quit();
+    thr.wait();
+    thr.quit();
+    QThreadPool::globalInstance()->waitForDone();
     qDebug("Done");
 
 }

@@ -161,7 +161,7 @@ void FootprintLibDocument::init() {
         QString s = QString("INSERT INTO FootprintTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 100000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }

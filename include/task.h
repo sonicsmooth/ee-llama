@@ -13,8 +13,9 @@
 #include <functional>
 #include <chrono>
 
-static const QEvent::Type SET_VALUE =
-        static_cast<QEvent::Type>(QEvent::User + 1);
+static const QEvent::Type CREATE = static_cast<QEvent::Type>(QEvent::User + 0);
+static const QEvent::Type SET_VALUE = static_cast<QEvent::Type>(QEvent::User + 1);
+
 
 // Wraps either QProgressBar or QProgressDialog
 // Create an instance, then move to another thread
@@ -28,98 +29,80 @@ private:
     int mMaximum;
     QWidget *mParent;
     const Qt::WindowFlags mF;
-    void create() {mWidget = new QProgressDialog(mLabelText, mCancelButtonText,
-                                                 mMinimum, mMaximum, mParent, mF);}
-public:
-    ProgressDialogWrapper(const ProgressDialogWrapper &) {}
-    ~ProgressDialogWrapper() override {
-        qDebug() << "ProgressDialogWrapper destructor";
-    }
-    ProgressDialogWrapper(const QString &labelText,
-                          const QString &cancelButtonText,
-                          int minimum,
-                          int maximum,
-                          QWidget *parent = nullptr,
-                          Qt::WindowFlags f = Qt::WindowFlags()) :
-        mWidget(nullptr),
-        mLabelText(labelText),
-        mCancelButtonText(cancelButtonText),
-        mMinimum(minimum),
-        mMaximum(maximum),
-        mParent(parent),
-        mF(f) {}
-    ProgressDialogWrapper(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags()) :
-        mWidget(nullptr),
-        mParent(parent),
-        mF(f){}
-    QProgressDialog *widget() {return mWidget;}
-    bool event(QEvent *e) override {
-        switch(e->type()) {
-            case QEvent::User:
-                create();
-                mWidget->show();
-                return true;
-            case SET_VALUE:
-                mWidget->setValue(mWidget->value() + 1);
-                return true;
-            default:
-                return false;
-        }
-    }
 
-public slots:
-    void show() {mWidget->show();}
-    void setMaximum(int x) {mWidget->setMaximum(x);}
-    void setMinimum(int x) {mWidget->setMinimum(x);}
-    void setValue(int x) {
-        qDebug() << "setValue";
-        //mWidget->setValue(x);
+    public:
+        ~ProgressDialogWrapper() override {
+            qDebug() << "ProgressDialogWrapper destructor";
+            mWidget->close(); // closes anyway when value == maximum
+            delete mWidget;
     }
-    void requestValue() {emit requestedValue(mWidget->value());}
-signals:
-    void requestedValue(int);
+        ProgressDialogWrapper(const QString &labelText, const QString &cancelButtonText,
+                              int minimum, int maximum, QWidget *parent = nullptr,
+                              Qt::WindowFlags f = Qt::WindowFlags()) :
+            mWidget(nullptr),
+            mLabelText(labelText), mCancelButtonText(cancelButtonText),
+            mMinimum(minimum), mMaximum(maximum), mParent(parent), mF(f) {}
+        ProgressDialogWrapper(QWidget *parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags()) :
+            mWidget(nullptr), mParent(parent), mF(f){}
+        QProgressDialog *widget() {return mWidget;}
+        // Receiving events works across thread boundary
+        bool event(QEvent *e) override {
+            switch(e->type()) {
+                case QEvent::User:
+                    create();
+                    qDebug() << "user event: create";
+                    return true;
+                case SET_VALUE:
+                    mWidget->setValue(mWidget->value() + 1);
+                    qDebug() << "user event: set value";
+                    return true;
+                default:
+                    return QObject::event(e);
+            }
+        }
+
+    public slots:
+        void create() {
+            mWidget = new QProgressDialog(mLabelText, mCancelButtonText, mMinimum, mMaximum, mParent, mF);
+            mWidget->setAttribute(Qt::WA_DeleteOnClose);
+            mWidget->show();
+        }
+        void setValue(int x, int y) {
+            mWidget->setMaximum(y);
+            mWidget->setValue(x);
+        }
 };
 
-Q_DECLARE_METATYPE(ProgressDialogWrapper)
-
-// Things to try:
-// Thread with dumb class in it
-// Class which derives from Thread
 
 class TestClass : public QObject {
     Q_OBJECT
 private:
     QString name;
 public:
-    TestClass() {}
     TestClass(QString n) : name(n) {}
     ~TestClass() override {
-        qDebug() << "TestClass destructor";}
+        qDebug() << "TestClass destructor";
+    }
 public slots:
     void doWork() {
-        int loopcount = 10;
-        ProgressDialogWrapper pdw("LabelText", "TheButton", 0, loopcount, nullptr);
-        pdw.moveToThread(QApplication::instance()->thread());
-        bool okc = QObject::connect(this, qOverload<int>(&TestClass::progress),
-                         &pdw, &ProgressDialogWrapper::setValue
-                         ,Qt::QueuedConnection);
-        qDebug() << "connect:" << okc;
-        pdw.dumpObjectInfo();
-        dumpObjectInfo();
-        emit progress(5);
-        QApplication::postEvent(&pdw, new QEvent(QEvent::User));
+        int loopcount = 1000;
+        auto pdw = new ProgressDialogWrapper("LabelText", "TheButton", 1, loopcount, nullptr);
 
-        std::chrono::milliseconds t(500);
-        for (int i = 0; i < loopcount; i++) {
-            emit progress(i);
-            //emit progress(i, loopcount);
-            //QApplication::postEvent(&pdw, new QEvent(SET_VALUE));
-            std::this_thread::sleep_for(t);
+        pdw->moveToThread(QApplication::instance()->thread());
+        QObject::connect(this, &TestClass::starting, pdw, &ProgressDialogWrapper::create);
+        QObject::connect(this, &TestClass::progress, pdw, &ProgressDialogWrapper::setValue);
+        QObject::connect(thread(), &QThread::finished, pdw, &QObject::deleteLater);
+
+        emit starting();
+        for (int i = 0; i < loopcount+1; i++) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            emit progress(i, loopcount);
         }
         emit done();
+        thread()->quit();
     }
 signals:
-    void progress(int);
+    void starting();
     void progress(int, int);
     void done();
 };

@@ -5,8 +5,11 @@
 #include "emdilib.h"
 #include "documents.h"
 
+#include <QThreadPool>
+
 #include <iomanip>
 #include <mutex>
+#include <qdebug.h>
 #include <sstream>
 #include <string>
 
@@ -35,13 +38,19 @@ inline std::string docName() {
 template<typename T>
 inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     std::string docname = docName<T>();
-    auto p = std::make_unique<T>(docname);
-    emdi.openDocument(p.get());
-    emdi.newMdiFrame(docname, userType);
+    auto doOpen = [&emdi, docname, userType, &docVec]{
+        auto p = std::make_unique<T>(docname);
+        qDebug() << "starting open";
+        emdi.openDocument(p.get());
+        //emdi.newMdiFrame(docname, userType);
 
-    static std::mutex mutex;
-    std::lock_guard<std::mutex> guard(mutex);
-    docVec.push_back(std::move(p));
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> guard(mutex);
+        qDebug() << "Opened, pushing";
+        docVec.push_back(std::move(p));
+        qDebug() << "Pushed";
+    };
+    QThreadPool::globalInstance()->start(doOpen);
 }
 
 } // namespace
