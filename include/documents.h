@@ -4,8 +4,10 @@
 #include "idocument.h"
 #include "idocvisitor.h"
 #include "numberemitter.h"
-#include <string>
 
+#include <mutex>
+#include <string>
+#include <thread>
 
 
 class SymbolLibDocument    : public IDocument {
@@ -13,6 +15,7 @@ private:
     std::string m_name; // can change
     const std::string m_connName; // doesn't change for lifetime of object
     bool m_activeState;
+    //std::mutex m_mutex;
     // todo: add bool dirty
 public:
     SymbolLibDocument(const std::string &);

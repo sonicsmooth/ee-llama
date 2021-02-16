@@ -15,6 +15,13 @@
 
 namespace newdocs {
 
+class StringEmitter : public QObject {
+    Q_OBJECT
+signals:
+    void stringsig(const std::string & s1, const std::string & s2);
+};
+
+
 template <typename T> std::string docString() {return "undefined";}
 template <> inline std::string docString<SymbolLibDocument>() {return "SymLibDocument_";}
 template <> inline std::string docString<FootprintLibDocument>() {return "FootprintLibDocument_";}
@@ -37,11 +44,20 @@ inline std::string docName() {
 
 template<typename T>
 inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
+    // Typically newDoc runs in the main thread as is it called from the menu
+    // and returns quickly.
+    // The doOpen is run in another thread as it may take a long time
     std::string docname = docName<T>();
     auto doOpen = [&emdi, docname, userType, &docVec]{
         auto p = std::make_unique<T>(docname);
         qDebug() << "starting open";
         emdi.openDocument(p.get());
+        qDebug() << "opened";
+        StringEmitter se;
+        QObject::connect(&se, &StringEmitter::stringsig,
+                         &emdi, &Emdi::_newMdiFrameSlot,
+                         Qt::BlockingQueuedConnection);
+        emit se.stringsig(docname, userType);
         //emdi.newMdiFrame(docname, userType);
 
         static std::mutex mutex;

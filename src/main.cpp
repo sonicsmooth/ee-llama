@@ -1,4 +1,4 @@
-#include "vld.h"
+//#include "vld.h"
 #include "buttonwindow.h"
 #include "dbutils.h"
 #include "documents.h"
@@ -114,10 +114,10 @@ int main(int argc, char *argv[]) {
 
     worker.moveToThread(&thr);
 
-    thr.start();
+    //thr.start();
     a.exec();
-    thr.wait();
-    thr.quit();
+    //thr.wait();
+    //thr.quit();
     QThreadPool::globalInstance()->waitForDone();
     qDebug("Done");
 
