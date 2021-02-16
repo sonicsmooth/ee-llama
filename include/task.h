@@ -1,7 +1,6 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include "guilauncher.h"
 #include <QApplication>
 #include <QEvent>
 #include <QDebug>
@@ -64,7 +63,7 @@ private:
     public slots:
         void create() {
             mWidget = new QProgressDialog(mLabelText, mCancelButtonText, mMinimum, mMaximum, mParent, mF);
-            mWidget->setAttribute(Qt::WA_DeleteOnClose);
+            //mWidget->setAttribute(Qt::WA_DeleteOnClose);
             mWidget->show();
         }
         void setValue(int x, int y) {
@@ -95,11 +94,11 @@ public slots:
 
         emit starting();
         for (int i = 0; i < loopcount+1; i++) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::microseconds(1500));
             emit progress(i, loopcount);
         }
-        emit done();
-        thread()->quit();
+        //emit done();
+        //thread()->quit();
     }
 signals:
     void starting();

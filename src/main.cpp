@@ -5,7 +5,6 @@
 #include "emdilib.h"
 #include "eellama_types.h"
 #include "filedialogs.h"
-#include "guilauncher.h"
 #include "mainwindow.h"
 #include "maindispatch.h"
 #include "menudocvisitor.h"
@@ -109,7 +108,7 @@ int main(int argc, char *argv[]) {
 
     QObject::connect(&thr, &QThread::started, &worker, &TestClass::doWork);
     //QObject::connect(&worker, &TestClass::progress, [](int x, int y){qDebug() << x << "out of" << y;});
-    QObject::connect(&worker, &TestClass::done, []{qDebug() << "Done";});
+    //QObject::connect(&worker, &TestClass::done, []{qDebug() << "Done";});
     QObject::connect(&thr, &QThread::finished, []{qDebug() << "finished";});
 
     worker.moveToThread(&thr);
