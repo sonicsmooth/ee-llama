@@ -24,6 +24,8 @@ SymbolLibDocument::~SymbolLibDocument() {
     qDebug() << QString("SymbolLibDocument::~SymbolLibDocument() (%1)").arg(m_name.c_str());
 }
 void SymbolLibDocument::init() {
+    // Todo: capture or store the thread which called this
+    // Hopefully the thread doesn't die before the doc is done()
     if (m_activeState) {
         return;
     } else {
@@ -52,7 +54,7 @@ void SymbolLibDocument::init() {
         QString s = QString("INSERT INTO SymbolTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 1000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
@@ -68,6 +70,8 @@ void SymbolLibDocument::done() {
         QString dbname = QString::fromStdString(m_connName);
         QString filename = "tmp_" + QString::fromStdString(m_name);
         {
+            // Todo: find the thread which opened this database
+            // Presumably from thread pool
             QSqlDatabase db = QSqlDatabase::database(dbname);
             db.close();
         }

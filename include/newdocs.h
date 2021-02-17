@@ -58,7 +58,6 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
                          &emdi, &Emdi::_newMdiFrameSlot,
                          Qt::BlockingQueuedConnection);
         emit se.stringsig(docname, userType);
-        //emdi.newMdiFrame(docname, userType);
 
         static std::mutex mutex;
         std::lock_guard<std::mutex> guard(mutex);

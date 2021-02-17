@@ -103,20 +103,21 @@ int main(int argc, char *argv[]) {
 
     emdi.newMainWindow();
 
-    TestClass worker("Tc1");
-    QThread thr;
+    //TestClass worker("Tc1");
+    //QThread thr;
 
-    QObject::connect(&thr, &QThread::started, &worker, &TestClass::doWork);
+    //QObject::connect(&thr, &QThread::started, &worker, &TestClass::doWork);
     //QObject::connect(&worker, &TestClass::progress, [](int x, int y){qDebug() << x << "out of" << y;});
     //QObject::connect(&worker, &TestClass::done, []{qDebug() << "Done";});
-    QObject::connect(&thr, &QThread::finished, []{qDebug() << "finished";});
+    //QObject::connect(&thr, &QThread::finished, []{qDebug() << "finished";});
 
-    worker.moveToThread(&thr);
+    //worker.moveToThread(&thr);
 
     //thr.start();
     a.exec();
     //thr.wait();
     //thr.quit();
+    qDebug() << "max thread count" << QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->waitForDone();
     qDebug("Done");
 
