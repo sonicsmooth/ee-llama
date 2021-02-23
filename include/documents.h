@@ -18,6 +18,8 @@ private:
     //std::mutex m_mutex;
     // todo: add bool dirty
 public:
+    SymbolLibDocument() : m_name(""), m_connName(""), m_activeState(false){}
+    SymbolLibDocument(const SymbolLibDocument &) {}
     SymbolLibDocument(const std::string &);
     ~SymbolLibDocument() override;
     void init() override;
@@ -35,6 +37,8 @@ public:
     void saveAs(const std::string &); // implies internal renaming of doc
     void saveCopyAs(const std::string &) const;
 };
+
+
 class FootprintLibDocument : public IDocument {
 private:
     std::string m_name;
@@ -105,6 +109,10 @@ public:
     void saveCopyAs(const std::string &) const;
 };
 
+//Q_DECLARE_METATYPE(SymbolLibDocument *)
+//Q_DECLARE_METATYPE(FootprintLibDocument *)
+//Q_DECLARE_METATYPE(SchDocument *)
+//Q_DECLARE_METATYPE(PCBDocument *)
 
 
 

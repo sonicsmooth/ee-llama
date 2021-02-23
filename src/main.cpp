@@ -74,6 +74,12 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
 
 
 int main(int argc, char *argv[]) {
+
+    qRegisterMetaType<SymbolLibDocument>("IDocument *");
+    qRegisterMetaType<SymbolLibDocument>("const std::string &");
+    //qRegisterMetaType<SymbolLibDocument>("SymbolLibDocument");
+    //qRegisterMetaType<SymbolLibDocument *>("SymbolLibDocument *");
+
     QApplication a(argc, argv);
 
 
@@ -117,7 +123,6 @@ int main(int argc, char *argv[]) {
     a.exec();
     //thr.wait();
     //thr.quit();
-    qDebug() << "max thread count" << QThreadPool::globalInstance()->maxThreadCount();
     QThreadPool::globalInstance()->waitForDone();
     qDebug("Done");
 
