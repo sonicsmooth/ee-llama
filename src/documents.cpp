@@ -54,7 +54,7 @@ void SymbolLibDocument::init() {
         QString s = QString("INSERT INTO SymbolTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1000000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }

@@ -2,7 +2,7 @@
 //#include "dbclone.h"
 #include "dbutils.h"
 #include "sqlite3/sqlite3.h"
-#include "numberemitter.h"
+#include "emitters.h"
 
 #include <QApplication>
 #include <QDebug>

@@ -3,7 +3,9 @@
 
 #include "eellama_types.h"
 #include "emdilib.h"
+#include "emitters.h"
 #include "documents.h"
+#include "docthreadwrapper.h"
 
 #include <QThreadPool>
 
@@ -15,11 +17,6 @@
 
 namespace newdocs {
 
-class StringEmitter : public QObject {
-    Q_OBJECT
-signals:
-    void stringsig(const std::string & s1, const std::string & s2);
-};
 
 
 template <typename T> std::string docString() {return "undefined";}
@@ -48,24 +45,31 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     // and returns quickly.
     // The doOpen is run in another thread as it may take a long time
     std::string docname = docName<T>();
-    auto doOpen = [&emdi, docname, userType, &docVec]{
+    StringEmitter *se = new StringEmitter;
+
+    QThread *thread = QThread::create([userType, &emdi, &docVec,
+                                       docname, se]{
         auto p = std::make_unique<T>(docname);
-        qDebug() << "starting open";
-        emdi.openDocument(p.get());
+        {
+        auto dtw = DocThreadWrapper(std::move(p));
+        }
+        qDebug() << "starting new doc";
+        //p->init();
+        //emdi.openDocument(p.get());
         qDebug() << "opened";
-        StringEmitter se;
-        QObject::connect(&se, &StringEmitter::stringsig,
-                         &emdi, &Emdi::_newMdiFrameSlot,
-                         Qt::BlockingQueuedConnection);
-        emit se.stringsig(docname, userType);
 
         static std::mutex mutex;
         std::lock_guard<std::mutex> guard(mutex);
-        qDebug() << "Opened, pushing";
-        docVec.push_back(std::move(p));
-        qDebug() << "Pushed";
-    };
-    QThreadPool::globalInstance()->start(doOpen);
+        //docVec.push_back(std::move(p));
+        emit se->stringsig(docname, userType);
+    });
+    QObject::connect(se, &StringEmitter::stringsig,
+                     &emdi, &Emdi::_newMdiFrameSlot,
+                     Qt::BlockingQueuedConnection);
+    QObject::connect(thread, &QThread::finished,[]{qDebug() << "thread done";});
+    thread->start();
+    qDebug() << "exiting";
+
 }
 
 } // namespace

@@ -20,13 +20,13 @@ SOURCES += \
     src/documents.cpp \
     src/menudocvisitor.cpp \
     src/filesavevisitor.cpp \
-    src/misc.cpp \
-    src/numberemitter.cpp
+    src/misc.cpp
 
 HEADERS += \
     include/buttonwindow.h \
     include/dbutils.h \
     include/eellama_types.h \
+    include/emitters.h \
     include/extensiondocvisitor.h \
     include/filedialogs.h \
     include/filesavecopyasvisitor.h \
@@ -38,7 +38,6 @@ HEADERS += \
     include/filesavevisitor.h \
     include/misc.h \
     include/newdocs.h \
-    include/numberemitter.h \
     include/task.h \
     $$PWD/sqlite3/sqlite3.h \
 

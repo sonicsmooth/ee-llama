@@ -1,7 +1,7 @@
 #ifndef DBUTILS_H
 #define DBUTILS_H
 
-#include "numberemitter.h"
+#include "emitters.h"
 
 #include <QMainWindow>
 #include <QString>

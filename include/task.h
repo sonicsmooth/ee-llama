@@ -106,5 +106,50 @@ signals:
     void done();
 };
 
+class Worker : public QObject {
+    Q_OBJECT
+public:
+    virtual ~Worker() override {}
+    // If you want normal processing, don't do infinite loop and
+    // don't call thread()->quit()
+    virtual void work() = 0;
+};
+
+
+// Use this when you want to execute a Worker's
+// work() method and then stay in the loop.
+// This is limited to a single function
+class ThreadWithWaiter : public QThread {
+private:
+    Worker *w;
+public:
+    ThreadWithWaiter(Worker *_w) : w(_w) {
+        QObject::connect(this, &QThread::finished, w, &QObject::deleteLater);
+        w->moveToThread(this);}
+    ~ThreadWithWaiter() override {
+        qDebug() << "Thread destroyed";}
+protected:
+    void run() override {w->work();}
+};
+
+
+class TestWorker : public Worker {
+    Q_OBJECT
+public:
+    TestWorker() {}
+    ~TestWorker() override {qDebug() << "Destroyed worker";}
+public slots:
+    void work() override {
+        qDebug() << "Work and wait";
+        for (int i = 0; i < 20; ++i) {
+            qDebug() << i << "working in thread" << thread();
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        }
+    }
+};
+
+
+
+
 
 #endif // TASK_H
