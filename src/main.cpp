@@ -75,6 +75,14 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
 }
 
 
+int main(int argc, char *argv[]) {
+
+    qRegisterMetaType<SymbolLibDocument>("IDocument *");
+    qRegisterMetaType<SymbolLibDocument>("const std::string &");
+    //qRegisterMetaType<SymbolLibDocument>("SymbolLibDocument");
+    //qRegisterMetaType<SymbolLibDocument *>("SymbolLibDocument *");
+
+    QApplication a(argc, argv);
 
 
 

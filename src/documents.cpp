@@ -6,6 +6,7 @@
 #include <QSqlDatabase>
 #include <QSqlDriver>
 #include <QSqlQuery>
+#include <QThread>
 
 #include <cstdio>
 #include <string>
@@ -26,6 +27,7 @@ SymbolLibDocument::~SymbolLibDocument() {
 void SymbolLibDocument::init() {
     // Todo: capture or store the thread which called this
     // Hopefully the thread doesn't die before the doc is done()
+    qDebug() << "Starting doc init in" << QThread::currentThread();
     if (m_activeState) {
         return;
     } else {
@@ -54,10 +56,11 @@ void SymbolLibDocument::init() {
         QString s = QString("INSERT INTO SymbolTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 10000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
+        qDebug() << "Doc init done";
         query.exec("COMMIT");
     }
     m_activeState = true;
@@ -165,11 +168,12 @@ void FootprintLibDocument::init() {
         QString s = QString("INSERT INTO FootprintTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 1000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
         query.exec("COMMIT");
+        qDebug() << "done filling db";
     }
     m_activeState = true;
 }

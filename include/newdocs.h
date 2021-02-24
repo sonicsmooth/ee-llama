@@ -7,6 +7,10 @@
 #include "documents.h"
 #include "docthreadwrapper.h"
 
+
+#include <QApplication>
+#include <QMetaType>
+#include <QThread>
 #include <QThreadPool>
 
 #include <iomanip>
@@ -14,6 +18,7 @@
 #include <qdebug.h>
 #include <sstream>
 #include <string>
+#include <thread>
 
 namespace newdocs {
 
@@ -40,36 +45,65 @@ inline std::string docName() {
 }
 
 template<typename T>
+inline void _localOpen(Emdi & , const DocThreadWrapper *) {
+    qDebug() << "Not specialized";
+}
+template<>
+inline void _localOpen<SymbolLibDocument>(Emdi & emdi, const DocThreadWrapper * dtw) {
+    SymbolLibDocument *doc = static_cast<SymbolLibDocument *>(dtw->get());
+    IDocument *idoc = dtw->get();
+    QMetaObject::invokeMethod(&emdi, "openDocument",
+                              Qt::QueuedConnection,
+                              Q_ARG(IDocument *, idoc));
+}
+
+
+
+template<typename T>
 inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     // Typically newDoc runs in the main thread as is it called from the menu
     // and returns quickly.
     // The doOpen is run in another thread as it may take a long time
     std::string docname = docName<T>();
-    StringEmitter *se = new StringEmitter;
+    auto doOpen = [&emdi, docname, userType, &docVec]{
+        auto dtw = new DocThreadWrapper(std::make_unique<T>(docname));
+        auto thr = new QThread;
+        qDebug() << "Main thread " << QApplication::instance()->thread();
+        qDebug() << "This thread " << QThread::currentThread();
+        qDebug() << "SubSubthread" << thr;
+        dtw->moveToThread(thr);
+        thr->start();
 
-    QThread *thread = QThread::create([userType, &emdi, &docVec,
-                                       docname, se]{
-        auto p = std::make_unique<T>(docname);
-        {
-        auto dtw = DocThreadWrapper(std::move(p));
-        }
-        qDebug() << "starting new doc";
-        //p->init();
-        //emdi.openDocument(p.get());
+        // todo: try emitter again!
+
+
+        qDebug() << "starting open";
+//        _localOpen<T>(emdi, dtw);
+        T *doc = static_cast<T *>(dtw->get());
+        QMetaObject::invokeMethod(&emdi, "openDocument",
+                                  Qt::DirectConnection,
+                                  Q_ARG(IDocument *, doc));
+        //qDebug() << "Starting sleep for 3s";
+        //std::this_thread::sleep_for(std::chrono::seconds(3));
+
+        Signal
+
+        QMetaObject::invokeMethod(&emdi, "newMdiFrame",
+                                  Qt::QueuedConnection,
+                                  Q_ARG(const std::string &, docname),
+                                  Q_ARG(const std::string &, userType));
         qDebug() << "opened";
 
-        static std::mutex mutex;
-        std::lock_guard<std::mutex> guard(mutex);
-        //docVec.push_back(std::move(p));
-        emit se->stringsig(docname, userType);
-    });
-    QObject::connect(se, &StringEmitter::stringsig,
-                     &emdi, &Emdi::_newMdiFrameSlot,
-                     Qt::BlockingQueuedConnection);
-    QObject::connect(thread, &QThread::finished,[]{qDebug() << "thread done";});
-    thread->start();
-    qDebug() << "exiting";
+        qDebug() << "Starting sleep again for 3000s";
+        std::this_thread::sleep_for(std::chrono::seconds(3000));
 
+//        static std::mutex mutex;
+//        std::lock_guard<std::mutex> guard(mutex);
+//        qDebug() << "Opened, pushing";
+//        //docVec.push_back(std::move(p));
+//        qDebug() << "Pushed";
+    };
+    QThreadPool::globalInstance()->start(doOpen);
 }
 
 } // namespace
