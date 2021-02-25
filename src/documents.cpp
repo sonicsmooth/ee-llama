@@ -56,7 +56,7 @@ void SymbolLibDocument::init() {
         QString s = QString("INSERT INTO SymbolTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 100000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
@@ -70,11 +70,11 @@ void SymbolLibDocument::done() {
         return;
     } else {
         // Removes and deletes temp database
+        qDebug() << "Done in" << QThread::currentThread();
         QString dbname = QString::fromStdString(m_connName);
         QString filename = "tmp_" + QString::fromStdString(m_name);
         {
             // Todo: find the thread which opened this database
-            // Presumably from thread pool
             QSqlDatabase db = QSqlDatabase::database(dbname);
             db.close();
         }

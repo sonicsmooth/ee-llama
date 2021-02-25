@@ -77,16 +77,11 @@ void setActionChecked(const QWidget *mw, const std::string & userType, bool chec
 
 int main(int argc, char *argv[]) {
 
-    qRegisterMetaType<SymbolLibDocument>("IDocument *");
-    qRegisterMetaType<SymbolLibDocument>("const std::string &");
+    qRegisterMetaType<IDocument *>("IDocument *");
+    qRegisterMetaType<std::string>("std::string");
     //qRegisterMetaType<SymbolLibDocument>("SymbolLibDocument");
     //qRegisterMetaType<SymbolLibDocument *>("SymbolLibDocument *");
 
-    QApplication a(argc, argv);
-
-
-
-int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     // Enhanced MDI, list of documents, dispatch map
@@ -131,28 +126,28 @@ int main(int argc, char *argv[]) {
 //    qDebug() << "Waiting 5 seconds";
 //    std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    // This block works well
-    TestWorker *worker2 = new TestWorker;
-    QThread *thr2 = new QThread;
-    QObject::connect(thr2, &QThread::started, []{qDebug()<< "thr2 started";});
-    QObject::connect(thr2, &QThread::finished, []{qDebug()<< "thr2 finished";});
-    QObject::connect(thr2, &QThread::finished, worker2, &QObject::deleteLater);
-    QObject::connect(thr2, &QThread::finished, thr2, &QObject::deleteLater);
-    worker2->moveToThread(thr2);
-    thr2->start();
-    for (int i = 0; i < 10; i++) {
-        if (i == 5) {
-            QMetaObject::invokeMethod(worker2, &Worker::work);
-        }
-        qDebug() << i << "main loop" << app.thread();
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-    qDebug() << "Waiting 8 seconds";
-    std::this_thread::sleep_for(std::chrono::seconds(8));
-    qDebug() << "Killing thread";
-    thr2->quit();
-    qDebug() << "Waiting";
-    thr2->wait();
+//    // This block works well
+//    TestWorker *worker2 = new TestWorker;
+//    QThread *thr2 = new QThread;
+//    QObject::connect(thr2, &QThread::started, []{qDebug()<< "thr2 started";});
+//    QObject::connect(thr2, &QThread::finished, []{qDebug()<< "thr2 finished";});
+//    QObject::connect(thr2, &QThread::finished, worker2, &QObject::deleteLater);
+//    QObject::connect(thr2, &QThread::finished, thr2, &QObject::deleteLater);
+//    worker2->moveToThread(thr2);
+//    thr2->start();
+//    for (int i = 0; i < 10; i++) {
+//        if (i == 5) {
+//            QMetaObject::invokeMethod(worker2, &Worker::work);
+//        }
+//        qDebug() << i << "main loop" << app.thread();
+//        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+//    }
+//    qDebug() << "Waiting 8 seconds";
+//    std::this_thread::sleep_for(std::chrono::seconds(8));
+//    qDebug() << "Killing thread";
+//    thr2->quit();
+//    qDebug() << "Waiting";
+//    thr2->wait();
 
 
 
@@ -174,6 +169,5 @@ int main(int argc, char *argv[]) {
     app.exec();
     //thr.wait();
     //thr.quit();
-    QThreadPool::globalInstance()->waitForDone();
 
 }

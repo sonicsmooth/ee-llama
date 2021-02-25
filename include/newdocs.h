@@ -44,18 +44,18 @@ inline std::string docName() {
     return ss.str();
 }
 
-template<typename T>
-inline void _localOpen(Emdi & , const DocThreadWrapper *) {
-    qDebug() << "Not specialized";
-}
-template<>
-inline void _localOpen<SymbolLibDocument>(Emdi & emdi, const DocThreadWrapper * dtw) {
-    SymbolLibDocument *doc = static_cast<SymbolLibDocument *>(dtw->get());
-    IDocument *idoc = dtw->get();
-    QMetaObject::invokeMethod(&emdi, "openDocument",
-                              Qt::QueuedConnection,
-                              Q_ARG(IDocument *, idoc));
-}
+//template<typename T>
+//inline void _localOpen(Emdi & , const DocThreadWrapper *) {
+//    qDebug() << "Not specialized";
+//}
+//template<>
+//inline void _localOpen<SymbolLibDocument>(Emdi & emdi, const DocThreadWrapper * dtw) {
+//    SymbolLibDocument *doc = static_cast<SymbolLibDocument *>(dtw->get());
+//    IDocument *idoc = dtw->get();
+//    QMetaObject::invokeMethod(&emdi, "openDocument",
+//                              Qt::QueuedConnection,
+//                              Q_ARG(IDocument *, idoc));
+//}
 
 
 
@@ -74,28 +74,31 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
         dtw->moveToThread(thr);
         thr->start();
 
-        // todo: try emitter again!
-
-
         qDebug() << "starting open";
-//        _localOpen<T>(emdi, dtw);
+
+        QMetaObject::invokeMethod(dtw, "init",
+                                  Qt::BlockingQueuedConnection);
+
+//        qDebug() << "Starting sleep for 10s";
+//        std::this_thread::sleep_for(std::chrono::seconds(10));
+
         T *doc = static_cast<T *>(dtw->get());
         QMetaObject::invokeMethod(&emdi, "openDocument",
-                                  Qt::DirectConnection,
+                                  Qt::BlockingQueuedConnection,
                                   Q_ARG(IDocument *, doc));
-        //qDebug() << "Starting sleep for 3s";
-        //std::this_thread::sleep_for(std::chrono::seconds(3));
 
-        Signal
+//        qDebug() << "Starting sleep for 10s";
+//        std::this_thread::sleep_for(std::chrono::seconds(10));
 
         QMetaObject::invokeMethod(&emdi, "newMdiFrame",
-                                  Qt::QueuedConnection,
+                                  Qt::BlockingQueuedConnection,
                                   Q_ARG(const std::string &, docname),
                                   Q_ARG(const std::string &, userType));
         qDebug() << "opened";
 
-        qDebug() << "Starting sleep again for 3000s";
-        std::this_thread::sleep_for(std::chrono::seconds(3000));
+//        qDebug() << "Starting sleep again for 5s";
+//        std::this_thread::sleep_for(std::chrono::seconds(5));
+//        qDebug() << "Done sleeping";
 
 //        static std::mutex mutex;
 //        std::lock_guard<std::mutex> guard(mutex);
