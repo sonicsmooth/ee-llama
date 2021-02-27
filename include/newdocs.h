@@ -66,6 +66,7 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     // The doOpen is run in another thread as it may take a long time
     std::string docname = docName<T>();
     auto doOpen = [&emdi, docname, userType, &docVec]{
+        // weird circles!
         auto dtw = new DocThreadWrapper(std::make_unique<T>(docname));
         auto thr = new QThread;
         qDebug() << "Main thread " << QApplication::instance()->thread();

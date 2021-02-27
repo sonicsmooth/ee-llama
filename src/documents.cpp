@@ -13,10 +13,12 @@
 
 
 
-SymbolLibDocument::SymbolLibDocument(const std::string & name) :
+SymbolLibDocument::SymbolLibDocument(const std::string & name,
+                                     const DocThreadWrapper *w) :
     m_name(name),
     m_connName(dbutils::connName("SLCONN")),
-    m_activeState(false)
+    m_activeState(false),
+    m_wrapper(w)
 {
     qDebug() << m_connName.c_str();
 }
@@ -113,6 +115,10 @@ void SymbolLibDocument::accept(const IDocVisitor *dv) {
 void SymbolLibDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
 }
+void SymbolLibDocument::setWrapper(const DocThreadWrapper *w) {
+    m_wrapper = w;
+}
+
 void SymbolLibDocument::setName(const std::string & newName) {
     m_name = newName;
 }

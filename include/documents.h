@@ -3,6 +3,7 @@
 
 #include "idocument.h"
 #include "idocvisitor.h"
+#include "docthreadwrapper.h"
 
 #include <mutex>
 #include <string>
@@ -14,12 +15,17 @@ private:
     std::string m_name; // can change
     const std::string m_connName; // doesn't change for lifetime of object
     bool m_activeState;
+    const DocThreadWrapper *m_wrapper;
     //std::mutex m_mutex;
     // todo: add bool dirty
 public:
-    SymbolLibDocument() : m_name(""), m_connName(""), m_activeState(false){}
+    SymbolLibDocument(const DocThreadWrapper *w=nullptr) :
+        m_name(""),
+        m_connName(""),
+        m_activeState(false),
+        m_wrapper(w){}
     SymbolLibDocument(const SymbolLibDocument &) {}
-    SymbolLibDocument(const std::string &);
+    SymbolLibDocument(const std::string &, const DocThreadWrapper * = nullptr);
     ~SymbolLibDocument() override;
     void init() override;
     void done() override;
@@ -31,6 +37,7 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
+    void setWrapper(const DocThreadWrapper *) override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -43,6 +50,7 @@ private:
     std::string m_name;
     const std::string m_connName;
     bool m_activeState;
+    DocThreadWrapper *m_wrapper;
 public:
     FootprintLibDocument(const std::string &);
     ~FootprintLibDocument() override;
@@ -56,6 +64,7 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
+    void setWrapper(const DocThreadWrapper *) override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -66,6 +75,7 @@ private:
     std::string m_name;
     const std::string m_connName;
     bool m_activeState;
+    DocThreadWrapper *m_wrapper;
 public:
     SchDocument(const std::string &);
     ~SchDocument() override;
@@ -79,6 +89,7 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
+    void setWrapper(const DocThreadWrapper *) override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -89,6 +100,7 @@ private:
     std::string m_name;
     const std::string m_connName;
     bool m_activeState;
+    DocThreadWrapper *m_wrapper;
 public:
     PCBDocument(const std::string &);
     ~PCBDocument() override;
@@ -102,16 +114,13 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
+    void setWrapper(const DocThreadWrapper *) override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
     void saveCopyAs(const std::string &) const;
 };
 
-//Q_DECLARE_METATYPE(SymbolLibDocument *)
-//Q_DECLARE_METATYPE(FootprintLibDocument *)
-//Q_DECLARE_METATYPE(SchDocument *)
-//Q_DECLARE_METATYPE(PCBDocument *)
 
 
 
