@@ -69,27 +69,23 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
         // weird circles!
         auto dtw = new DocThreadWrapper(std::make_unique<T>(docname));
         auto thr = new QThread;
-        qDebug() << "Main thread " << QApplication::instance()->thread();
-        qDebug() << "This thread " << QThread::currentThread();
-        qDebug() << "SubSubthread" << thr;
+//        qDebug() << "Main thread " << QApplication::instance()->thread();
+//        qDebug() << "This thread " << QThread::currentThread();
+//        qDebug() << "SubSubthread" << thr;
+        QObject::connect(thr, &QThread::finished,[]{qDebug() << "subsub finished";});
         dtw->moveToThread(thr);
         thr->start();
 
         qDebug() << "starting open";
 
+        // TODO: Should init be responsible for starting sub sub thread?
         QMetaObject::invokeMethod(dtw, "init",
                                   Qt::BlockingQueuedConnection);
-
-//        qDebug() << "Starting sleep for 10s";
-//        std::this_thread::sleep_for(std::chrono::seconds(10));
 
         T *doc = static_cast<T *>(dtw->get());
         QMetaObject::invokeMethod(&emdi, "openDocument",
                                   Qt::BlockingQueuedConnection,
                                   Q_ARG(IDocument *, doc));
-
-//        qDebug() << "Starting sleep for 10s";
-//        std::this_thread::sleep_for(std::chrono::seconds(10));
 
         QMetaObject::invokeMethod(&emdi, "newMdiFrame",
                                   Qt::BlockingQueuedConnection,

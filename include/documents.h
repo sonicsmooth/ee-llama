@@ -15,17 +15,13 @@ private:
     std::string m_name; // can change
     const std::string m_connName; // doesn't change for lifetime of object
     bool m_activeState;
-    const DocThreadWrapper *m_wrapper;
+    DocThreadWrapper *m_wrapper;
     //std::mutex m_mutex;
     // todo: add bool dirty
 public:
-    SymbolLibDocument(const DocThreadWrapper *w=nullptr) :
-        m_name(""),
-        m_connName(""),
-        m_activeState(false),
-        m_wrapper(w){}
-    SymbolLibDocument(const SymbolLibDocument &) {}
-    SymbolLibDocument(const std::string &, const DocThreadWrapper * = nullptr);
+    SymbolLibDocument();
+    SymbolLibDocument(const SymbolLibDocument &);
+    SymbolLibDocument(const std::string &, DocThreadWrapper * = nullptr);
     ~SymbolLibDocument() override;
     void init() override;
     void done() override;
@@ -37,7 +33,8 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
-    void setWrapper(const DocThreadWrapper *) override;
+    void setWrapper(DocThreadWrapper *) override;
+    DocThreadWrapper *wrapper() override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -64,7 +61,8 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
-    void setWrapper(const DocThreadWrapper *) override;
+    void setWrapper(DocThreadWrapper *) override;
+    DocThreadWrapper *wrapper() override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -89,7 +87,8 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
-    void setWrapper(const DocThreadWrapper *) override;
+    void setWrapper(DocThreadWrapper *) override;
+    DocThreadWrapper *wrapper() override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc
@@ -114,7 +113,8 @@ public:
     void accept(const IDocVisitor *) override;
     void accept(IDocVisitor *) const override;
     void accept(const IDocVisitor *) const override;
-    void setWrapper(const DocThreadWrapper *) override;
+    void setWrapper(DocThreadWrapper *) override;
+    DocThreadWrapper *wrapper() override;
     void setName(const std::string &) override;
     void save() const;
     void saveAs(const std::string &); // implies internal renaming of doc

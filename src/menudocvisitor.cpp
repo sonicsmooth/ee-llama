@@ -30,7 +30,7 @@ void MenuDocVisitor::visit(const SymbolLibDocument *doc) {
     // even though many/most of those won't be used for any given visitor
     // instance.
     // How to get actions defined here as entries in main dispatch map?
-    qDebug() << "SymbolLibDocument visiting doc ptr" << doc;
+    //qDebug() << "SymbolLibDocument visiting doc ptr" << doc;
     if (m_symbolLibDocMenus.size() == 0) {
         QMenu *m1 = new QMenu("menu1");
         m1->addAction("What1");
@@ -44,14 +44,14 @@ void MenuDocVisitor::visit(const SymbolLibDocument *doc) {
     m_returnMenus = &m_symbolLibDocMenus;
 }
 void MenuDocVisitor::visit(const FootprintLibDocument *doc) {
-    qDebug() << "FootprintLibDocument visiting" << doc;
+    //qDebug() << "FootprintLibDocument visiting" << doc;
     m_returnMenus = &m_footprintLibDocMenus;
 }
 void MenuDocVisitor::visit(const SchDocument *doc) {
-    qDebug() << "SchDocument visiting" << doc;
+    //qDebug() << "SchDocument visiting" << doc;
     m_returnMenus = &m_schDocMenus;
 }
 void MenuDocVisitor::visit(const PCBDocument *doc) {
-    qDebug() << "PCBDocument visiting" << doc;
+    //qDebug() << "PCBDocument visiting" << doc;
     m_returnMenus = &m_PCBDocMenus;
 }

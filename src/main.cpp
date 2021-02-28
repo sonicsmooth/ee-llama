@@ -169,5 +169,11 @@ int main(int argc, char *argv[]) {
     app.exec();
     //thr.wait();
     //thr.quit();
+    qDebug() << "app thread" << app.thread();
+    qDebug() << "finished? " << app.thread()->isFinished();
+    qDebug() << "current th" << QThread::currentThread();
+    qDebug() << "Waiting for pool threads";
+    QThreadPool::globalInstance()->waitForDone();
+    qDebug() << "exiting";
 
 }

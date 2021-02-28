@@ -7,20 +7,38 @@
 #include <QSqlDriver>
 #include <QSqlQuery>
 #include <QThread>
+#include <QThreadPool>
 
 #include <cstdio>
 #include <string>
 
 
+SymbolLibDocument::SymbolLibDocument() :
+    m_name(""),
+    m_connName(""),
+    m_activeState(false),
+    m_wrapper(nullptr){
 
-SymbolLibDocument::SymbolLibDocument(const std::string & name,
-                                     const DocThreadWrapper *w) :
+}
+SymbolLibDocument::SymbolLibDocument(const SymbolLibDocument & other) :
+   m_name(other.m_name),
+   m_connName(other.m_connName),
+   m_activeState(other.m_activeState),
+   m_wrapper(other.m_wrapper)
+{
+    // Not sure what it means to copy-construct this class
+    // Shallow basic copy
+    // Not sure if or why this needs to be defined manually
+}
+
+
+
+SymbolLibDocument::SymbolLibDocument(const std::string & name, DocThreadWrapper *w) :
     m_name(name),
     m_connName(dbutils::connName("SLCONN")),
     m_activeState(false),
     m_wrapper(w)
 {
-    qDebug() << m_connName.c_str();
 }
 SymbolLibDocument::~SymbolLibDocument() {
     done();
@@ -29,7 +47,7 @@ SymbolLibDocument::~SymbolLibDocument() {
 void SymbolLibDocument::init() {
     // Todo: capture or store the thread which called this
     // Hopefully the thread doesn't die before the doc is done()
-    qDebug() << "Starting doc init in" << QThread::currentThread();
+    //qDebug() << "Starting doc init in" << QThread::currentThread();
     if (m_activeState) {
         return;
     } else {
@@ -58,11 +76,11 @@ void SymbolLibDocument::init() {
         QString s = QString("INSERT INTO SymbolTable (name) VALUES (:v);");
         query.prepare(s);
 
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 500000; i++) {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
-        qDebug() << "Doc init done";
+        //qDebug() << "Doc init done";
         query.exec("COMMIT");
     }
     m_activeState = true;
@@ -71,8 +89,17 @@ void SymbolLibDocument::done() {
     if (!m_activeState) {
         return;
     } else {
+        // Recur if we are not in the wrapper's thread
+        if (QThread::currentThread() != m_wrapper->thread()) {
+            // TODO: find a way to only emit done signal
+            // when it's really done
+            QMetaObject::invokeMethod(m_wrapper, "done", Qt::QueuedConnection);
+            return;
+        }
+
         // Removes and deletes temp database
-        qDebug() << "Done in" << QThread::currentThread();
+        qDebug() << "Done takes a while...";
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         QString dbname = QString::fromStdString(m_connName);
         QString filename = "tmp_" + QString::fromStdString(m_name);
         {
@@ -84,6 +111,8 @@ void SymbolLibDocument::done() {
         std::remove(filename.toLatin1());
     }
     m_activeState = false;
+    qDebug() << "Done being done...";
+    QThread::currentThread()->quit();
 }
 bool SymbolLibDocument::isActive() {
     return m_activeState;
@@ -115,10 +144,12 @@ void SymbolLibDocument::accept(const IDocVisitor *dv) {
 void SymbolLibDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
 }
-void SymbolLibDocument::setWrapper(const DocThreadWrapper *w) {
+void SymbolLibDocument::setWrapper(DocThreadWrapper *w) {
     m_wrapper = w;
 }
-
+DocThreadWrapper *SymbolLibDocument::wrapper() {
+    return m_wrapper;
+}
 void SymbolLibDocument::setName(const std::string & newName) {
     m_name = newName;
 }
@@ -139,7 +170,6 @@ FootprintLibDocument::FootprintLibDocument(const std::string & name) :
     m_connName(dbutils::connName("FLCONN")),
     m_activeState(false)
 {
-    qDebug() << m_connName.c_str();
 }
 FootprintLibDocument::~FootprintLibDocument() {
     done();
@@ -229,6 +259,12 @@ void FootprintLibDocument::accept(IDocVisitor *dv) const {
 void FootprintLibDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
 }
+void FootprintLibDocument::setWrapper(DocThreadWrapper *w) {
+    m_wrapper = w;
+}
+DocThreadWrapper *FootprintLibDocument::wrapper() {
+    return m_wrapper;
+}
 void FootprintLibDocument::setName(const std::string & newName) {
     m_name = newName;
 }
@@ -249,7 +285,6 @@ SchDocument::SchDocument(const std::string & name) :
     m_connName(dbutils::connName("SCHCONN")),
     m_activeState(false)
 {
-    qDebug() << m_connName.c_str();
 }
 SchDocument::~SchDocument() {
     done();
@@ -296,6 +331,12 @@ void SchDocument::accept(IDocVisitor *dv) const {
 }
 void SchDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
+}
+void SchDocument::setWrapper(DocThreadWrapper *w) {
+    m_wrapper = w;
+}
+DocThreadWrapper *SchDocument::wrapper() {
+    return m_wrapper;
 }
 void SchDocument::setName(const std::string & newName) {
     m_name = newName;
@@ -363,6 +404,12 @@ void PCBDocument::accept(IDocVisitor *dv) const {
 }
 void PCBDocument::accept(const IDocVisitor *dv) const {
     return dv->visit(this);
+}
+void PCBDocument::setWrapper(DocThreadWrapper *w) {
+    m_wrapper = w;
+}
+DocThreadWrapper *PCBDocument::wrapper() {
+    return m_wrapper;
 }
 void PCBDocument::setName(const std::string & newName) {
     m_name = newName;
