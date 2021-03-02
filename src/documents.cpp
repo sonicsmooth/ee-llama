@@ -47,7 +47,7 @@ SymbolLibDocument::~SymbolLibDocument() {
 void SymbolLibDocument::init() {
     // Todo: capture or store the thread which called this
     // Hopefully the thread doesn't die before the doc is done()
-    //qDebug() << "Starting doc init in" << QThread::currentThread();
+    qDebug() << "Starting doc init in" << QThread::currentThread();
     if (m_activeState) {
         return;
     } else {
@@ -80,7 +80,7 @@ void SymbolLibDocument::init() {
             query.bindValue(":v", QVariant(i));
             query.exec();
         }
-        //qDebug() << "Doc init done";
+        qDebug() << "Doc init done";
         query.exec("COMMIT");
     }
     m_activeState = true;

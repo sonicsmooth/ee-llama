@@ -68,30 +68,27 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     auto doOpen = [&emdi, docname, userType, &docVec]{
         // weird circles!
         auto dtw = new DocThreadWrapper(std::make_unique<T>(docname));
-        auto thr = new QThread;
-//        qDebug() << "Main thread " << QApplication::instance()->thread();
-//        qDebug() << "This thread " << QThread::currentThread();
-//        qDebug() << "SubSubthread" << thr;
-        QObject::connect(thr, &QThread::finished,[]{qDebug() << "subsub finished";});
-        dtw->moveToThread(thr);
-        thr->start();
+        qDebug() << "Main thread " << QApplication::instance()->thread();
+        qDebug() << "This thread " << QThread::currentThread();
 
-        qDebug() << "starting open";
+        qDebug() << "starting open asynchronously";
 
-        // TODO: Should init be responsible for starting sub sub thread?
-        QMetaObject::invokeMethod(dtw, "init",
-                                  Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(dtw, "init", Qt::QueuedConnection);
 
-        T *doc = static_cast<T *>(dtw->get());
-        QMetaObject::invokeMethod(&emdi, "openDocument",
-                                  Qt::BlockingQueuedConnection,
-                                  Q_ARG(IDocument *, doc));
+        qDebug() << "waiting 5s";
+        std::this_thread::sleep_for(std::chrono::seconds(5));
 
-        QMetaObject::invokeMethod(&emdi, "newMdiFrame",
-                                  Qt::BlockingQueuedConnection,
-                                  Q_ARG(const std::string &, docname),
-                                  Q_ARG(const std::string &, userType));
-        qDebug() << "opened";
+
+//        T *doc = static_cast<T *>(dtw->doc());
+//        QMetaObject::invokeMethod(&emdi, "openDocument",
+//                                  Qt::BlockingQueuedConnection,
+//                                  Q_ARG(IDocument *, doc));
+
+//        QMetaObject::invokeMethod(&emdi, "newMdiFrame",
+//                                  Qt::BlockingQueuedConnection,
+//                                  Q_ARG(const std::string &, docname),
+//                                  Q_ARG(const std::string &, userType));
+//        qDebug() << "opened";
 
 //        qDebug() << "Starting sleep again for 5s";
 //        std::this_thread::sleep_for(std::chrono::seconds(5));
@@ -102,6 +99,7 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
 //        qDebug() << "Opened, pushing";
 //        //docVec.push_back(std::move(p));
 //        qDebug() << "Pushed";
+        qDebug() << "Done with pool thread";
     };
     QThreadPool::globalInstance()->start(doOpen);
 }

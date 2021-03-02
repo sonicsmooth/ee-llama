@@ -79,8 +79,6 @@ int main(int argc, char *argv[]) {
 
     qRegisterMetaType<IDocument *>("IDocument *");
     qRegisterMetaType<std::string>("std::string");
-    //qRegisterMetaType<SymbolLibDocument>("SymbolLibDocument");
-    //qRegisterMetaType<SymbolLibDocument *>("SymbolLibDocument *");
 
     QApplication app(argc, argv);
 
@@ -108,67 +106,9 @@ int main(int argc, char *argv[]) {
             });});
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
-
-//    // This block works well
-//    TestWorker *worker1 = new TestWorker;
-//    ThreadWithWaiter *thr1 = new ThreadWithWaiter(worker1);
-//    QObject::connect(thr1, &QThread::started, []{qDebug()<< "thr1 started";});
-//    QObject::connect(thr1, &QThread::finished, []{qDebug()<< "thr1 finished";});
-//    thr1->start();
-//    for (int i = 0; i < 10; i++) {
-//        qDebug() << i << "main loop" << app.thread();
-//        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-//    }
-//    qDebug() << "Waiting";
-//    thr1->wait();
-//    delete thr1;
-
-//    qDebug() << "Waiting 5 seconds";
-//    std::this_thread::sleep_for(std::chrono::seconds(5));
-
-//    // This block works well
-//    TestWorker *worker2 = new TestWorker;
-//    QThread *thr2 = new QThread;
-//    QObject::connect(thr2, &QThread::started, []{qDebug()<< "thr2 started";});
-//    QObject::connect(thr2, &QThread::finished, []{qDebug()<< "thr2 finished";});
-//    QObject::connect(thr2, &QThread::finished, worker2, &QObject::deleteLater);
-//    QObject::connect(thr2, &QThread::finished, thr2, &QObject::deleteLater);
-//    worker2->moveToThread(thr2);
-//    thr2->start();
-//    for (int i = 0; i < 10; i++) {
-//        if (i == 5) {
-//            QMetaObject::invokeMethod(worker2, &Worker::work);
-//        }
-//        qDebug() << i << "main loop" << app.thread();
-//        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-//    }
-//    qDebug() << "Waiting 8 seconds";
-//    std::this_thread::sleep_for(std::chrono::seconds(8));
-//    qDebug() << "Killing thread";
-//    thr2->quit();
-//    qDebug() << "Waiting";
-//    thr2->wait();
-
-
-
-
-
     emdi.newMainWindow();
 
-    //TestClass worker("Tc1");
-    //QThread thr;
-
-    //QObject::connect(&thr, &QThread::started, &worker, &TestClass::doWork);
-    //QObject::connect(&worker, &TestClass::progress, [](int x, int y){qDebug() << x << "out of" << y;});
-    //QObject::connect(&worker, &TestClass::done, []{qDebug() << "Done";});
-    //QObject::connect(&thr, &QThread::finished, []{qDebug() << "finished";});
-
-    //worker.moveToThread(&thr);
-
-    //thr.start();
     app.exec();
-    //thr.wait();
-    //thr.quit();
     qDebug() << "app thread" << app.thread();
     qDebug() << "finished? " << app.thread()->isFinished();
     qDebug() << "current th" << QThread::currentThread();
