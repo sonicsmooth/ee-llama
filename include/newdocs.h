@@ -44,20 +44,6 @@ inline std::string docName() {
     return ss.str();
 }
 
-//template<typename T>
-//inline void _localOpen(Emdi & , const DocThreadWrapper *) {
-//    qDebug() << "Not specialized";
-//}
-//template<>
-//inline void _localOpen<SymbolLibDocument>(Emdi & emdi, const DocThreadWrapper * dtw) {
-//    SymbolLibDocument *doc = static_cast<SymbolLibDocument *>(dtw->get());
-//    IDocument *idoc = dtw->get();
-//    QMetaObject::invokeMethod(&emdi, "openDocument",
-//                              Qt::QueuedConnection,
-//                              Q_ARG(IDocument *, idoc));
-//}
-
-
 
 template<typename T>
 inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
@@ -66,23 +52,21 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     // The doOpen is run in another thread as it may take a long time
     std::string docname = docName<T>();
     auto doOpen = [&emdi, docname, userType, &docVec]{
-        // weird circles!
-        auto dtw = new DocThreadWrapper(std::make_unique<T>(docname));
+        auto dtw = std::make_unique<DocThreadWrapper>(std::make_unique<T>(docname));
         qDebug() << "Main thread " << QApplication::instance()->thread();
         qDebug() << "This thread " << QThread::currentThread();
+        qDebug() << "starting open synchronously";
+        QMetaObject::invokeMethod(dtw.get(), "init", Qt::BlockingQueuedConnection);
 
-        qDebug() << "starting open asynchronously";
-
-        QMetaObject::invokeMethod(dtw, "init", Qt::QueuedConnection);
-
-        qDebug() << "waiting 5s";
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-
-
-//        T *doc = static_cast<T *>(dtw->doc());
-//        QMetaObject::invokeMethod(&emdi, "openDocument",
-//                                  Qt::BlockingQueuedConnection,
-//                                  Q_ARG(IDocument *, doc));
+        // Doc is already open, so this "openDocument" puts the doc in the db
+        T *doc = static_cast<T *>(dtw->doc());
+        QMetaObject::invokeMethod(&emdi, "openDocument",
+                                  Qt::BlockingQueuedConnection,
+                                  Q_ARG(IDocument *, doc));
+        QMetaObject::invokeMethod(&emdi, "addWrapper",
+                                  Qt::BlockingQueuedConnection,
+                                  Q_ARG(IDocument *, doc),
+                                  Q_ARG(DocThreadWrapper *, dtw.get()));
 
 //        QMetaObject::invokeMethod(&emdi, "newMdiFrame",
 //                                  Qt::BlockingQueuedConnection,
@@ -90,15 +74,12 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
 //                                  Q_ARG(const std::string &, userType));
 //        qDebug() << "opened";
 
-//        qDebug() << "Starting sleep again for 5s";
-//        std::this_thread::sleep_for(std::chrono::seconds(5));
-//        qDebug() << "Done sleeping";
 
-//        static std::mutex mutex;
-//        std::lock_guard<std::mutex> guard(mutex);
-//        qDebug() << "Opened, pushing";
-//        //docVec.push_back(std::move(p));
-//        qDebug() << "Pushed";
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> guard(mutex);
+        qDebug() << "Opened, pushing";
+        docVec.push_back(std::move(dtw));
+        qDebug() << "Pushed";
         qDebug() << "Done with pool thread";
     };
     QThreadPool::globalInstance()->start(doOpen);

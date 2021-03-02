@@ -33,7 +33,6 @@
 #include <string>
 #include <thread>
 
-// TODO: multi-thread load and save
 // TODO: QML
 // TODO: TCL, ECL, Lua
 // TODO: menus
@@ -101,17 +100,14 @@ int main(int argc, char *argv[]) {
     QObject::connect(&emdi, &Emdi::docClosed,
         [&docVec](void *p) {
             IDocument *dp = static_cast<IDocument *>(p);
-            docVec.remove_if([dp](const std::unique_ptr<IDocument> & up) {
-                return up.get() == dp;
+            docVec.remove_if([dp](const std::unique_ptr<DocThreadWrapper> & dtw) {
+                return dtw->doc() == dp;
             });});
     QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
 
     emdi.newMainWindow();
 
     app.exec();
-    qDebug() << "app thread" << app.thread();
-    qDebug() << "finished? " << app.thread()->isFinished();
-    qDebug() << "current th" << QThread::currentThread();
     qDebug() << "Waiting for pool threads";
     QThreadPool::globalInstance()->waitForDone();
     qDebug() << "exiting";
