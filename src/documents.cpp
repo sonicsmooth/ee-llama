@@ -41,8 +41,13 @@ SymbolLibDocument::SymbolLibDocument(const std::string & name, DocThreadWrapper 
 {
 }
 SymbolLibDocument::~SymbolLibDocument() {
-    done();
     qDebug() << QString("SymbolLibDocument::~SymbolLibDocument() (%1)").arg(m_name.c_str());
+    // No way to call wrapping thread from here
+    // So either a) this object is already inactive, so done() has been
+    // called by the owning object (aka DocThreadWrapper) and subsequent
+    // calls to done() return immediately, or b) this is a naked document
+    // (no wrapper), and done() is just called in current thread.
+    done();
 }
 void SymbolLibDocument::init() {
     // Todo: capture or store the thread which called this
@@ -86,24 +91,16 @@ void SymbolLibDocument::init() {
     m_activeState = true;
 }
 void SymbolLibDocument::done() {
+    qDebug() << "SymbolLibDocument::done()" << QThread::currentThread();
     if (!m_activeState) {
         return;
     } else {
-        // Recur if we are not in the wrapper's thread
-        if (QThread::currentThread() != m_wrapper->thread()) {
-            // TODO: find a way to only emit done signal
-            // when it's really done
-            QMetaObject::invokeMethod(m_wrapper, "done", Qt::QueuedConnection);
-            return;
-        }
-
         // Removes and deletes temp database
         qDebug() << "Done takes a while...";
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(2));
         QString dbname = QString::fromStdString(m_connName);
         QString filename = "tmp_" + QString::fromStdString(m_name);
         {
-            // Todo: find the thread which opened this database
             QSqlDatabase db = QSqlDatabase::database(dbname);
             db.close();
         }
@@ -112,7 +109,6 @@ void SymbolLibDocument::done() {
     }
     m_activeState = false;
     qDebug() << "Done being done...";
-    QThread::currentThread()->quit();
 }
 bool SymbolLibDocument::isActive() {
     return m_activeState;

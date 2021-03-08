@@ -54,32 +54,33 @@ inline void newDoc(std::string userType, Emdi & emdi, docVec_t & docVec) {
     auto doOpen = [&emdi, docname, userType, &docVec]{
         auto dtw = std::make_unique<DocThreadWrapper>(std::make_unique<T>(docname));
         qDebug() << "Main thread " << QApplication::instance()->thread();
-        qDebug() << "This thread " << QThread::currentThread();
+        qDebug() << "Pool thread " << QThread::currentThread();
         qDebug() << "starting open synchronously";
-        QMetaObject::invokeMethod(dtw.get(), "init", Qt::BlockingQueuedConnection);
 
-        // Doc is already open, so this "openDocument" puts the doc in the db
+        // Figure out how to send an exception from the child
+        // thread back to here so the wrapper can be removed
+        // if there is a problem opening
+
         T *doc = static_cast<T *>(dtw->doc());
-        QMetaObject::invokeMethod(&emdi, "openDocument",
-                                  Qt::BlockingQueuedConnection,
-                                  Q_ARG(IDocument *, doc));
         QMetaObject::invokeMethod(&emdi, "addWrapper",
                                   Qt::BlockingQueuedConnection,
                                   Q_ARG(IDocument *, doc),
                                   Q_ARG(DocThreadWrapper *, dtw.get()));
 
+        QMetaObject::invokeMethod(&emdi, "openDocument",
+                                  Qt::BlockingQueuedConnection,
+                                  Q_ARG(IDocument *, doc));
+
 //        QMetaObject::invokeMethod(&emdi, "newMdiFrame",
 //                                  Qt::BlockingQueuedConnection,
 //                                  Q_ARG(const std::string &, docname),
 //                                  Q_ARG(const std::string &, userType));
-//        qDebug() << "opened";
+        qDebug() << "opened";
 
 
         static std::mutex mutex;
         std::lock_guard<std::mutex> guard(mutex);
-        qDebug() << "Opened, pushing";
         docVec.push_back(std::move(dtw));
-        qDebug() << "Pushed";
         qDebug() << "Done with pool thread";
     };
     QThreadPool::globalInstance()->start(doOpen);
