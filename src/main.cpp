@@ -95,16 +95,9 @@ int main(int argc, char *argv[]) {
 
     QApplication app(argc, argv);
 
-    // Enhanced MDI, list of documents, dispatch map
-    // Issue -- when everyhing shuts down, docVec is
-    // destroyed first, which closes and destroyes the
-    // docs, but doesn't remove them from emdi.  Then
-    // emdi is destroyed, which attempts to close open
-    // docs.  The docs are already closed, which would
-    // be fine, but they have also been destroyed,
-    // which is not fine since emdi uses pointers to
-    // reference them.  So probably declare emdi then
-    // docVec.
+    // Declare docVec first, then emdi, so emdi is destroyed
+    // first on exit which closes out all the docs, then
+    // docVec closes and destroys doc objects.
     docVec_t docVec;
     Emdi emdi;
     dispatchMap_t dm = dispatchMap(emdi, docVec);
@@ -116,17 +109,18 @@ int main(int argc, char *argv[]) {
 
     // The document close signal should be exposed at this level
     // since this is where we keep the documents
-    QObject::connect(&emdi, &Emdi::subWindowActivated,
+    QObject::connect(&emdi, &Emdi::sigSubWindowActivated,
         [&emdi](const QMdiSubWindow *sw) {
             updateMenus(emdi, sw);});
 
-    QObject::connect(&emdi, &Emdi::docClosed,
-        [&docVec](void *p) {
-            IDocument *dp = static_cast<IDocument *>(p);
-            docVec.remove_if([dp](const std::unique_ptr<DocThreadWrapper> & dtw) {
-                return dtw->doc() == dp;
+    QObject::connect(&emdi, &Emdi::sigCloseDocument,
+        [&docVec](IDocument *doc) {
+            // Removing from docvec should also close document
+            // Needs to go in background
+            docVec.remove_if([doc](const std::unique_ptr<DocThreadWrapper> & dtw) {
+                return dtw->doc() == doc;
             });});
-    QObject::connect(&emdi, &Emdi::dockShown, setActionChecked);
+    QObject::connect(&emdi, &Emdi::sigDockShown, setActionChecked);
 
     emdi.newMainWindow();
 
